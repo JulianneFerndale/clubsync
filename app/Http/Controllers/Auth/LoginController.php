@@ -41,7 +41,7 @@ class LoginController extends Controller
             ])->onlyInput('email');
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [strtolower($request->email)])->first();
 
         if (! $user) {
             return back()->withErrors([
@@ -67,6 +67,7 @@ class LoginController extends Controller
             $firebaseData['localId'],
             $user->role,
             $user->id,
+            $user->is_admin,
         );
 
         return $this->session->redirectByRole($user->role);

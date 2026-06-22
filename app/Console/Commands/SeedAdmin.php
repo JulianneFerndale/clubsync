@@ -9,14 +9,21 @@ use Illuminate\Support\Facades\Http;
 
 class SeedAdmin extends Command
 {
-    protected $signature   = 'app:seed-admin {--firebase-uid= : Skip Firebase registration and use this UID directly}';
-    protected $description = 'Create the DSA admin account in Firebase and MySQL';
+    protected $signature   = 'app:seed-admin
+        {--email= : Admin email (defaults to the DSA admin)}
+        {--password= : Admin password (defaults to the DSA admin)}
+        {--first-name= : First name for the MySQL record}
+        {--last-name= : Last name for the MySQL record}
+        {--firebase-uid= : Skip Firebase registration and use this UID directly}';
+    protected $description = 'Create an admin account in Firebase and MySQL';
 
     public function handle(): int
     {
-        $email    = 'dsa.admin@sccpag.edu.ph';
-        $password = 'Admin@ClubSync1';
-        $apiKey   = config('firebase.api_key');
+        $email     = $this->option('email') ?: 'dsa.admin@sccpag.edu.ph';
+        $password  = $this->option('password') ?: 'Admin@ClubSync1';
+        $firstName = $this->option('first-name') ?: 'DSA';
+        $lastName  = $this->option('last-name') ?: 'Admin';
+        $apiKey    = config('firebase.api_key');
 
         $this->info('Seeding admin user: ' . $email);
 
@@ -72,8 +79,8 @@ class SeedAdmin extends Command
         // ── 2. MySQL: create or update user ─────────────────────────────────
         $user = User::firstOrNew(['email' => $email]);
 
-        $user->first_name   = 'DSA';
-        $user->last_name    = 'Admin';
+        $user->first_name   = $firstName;
+        $user->last_name    = $lastName;
         $user->email        = $email;
         $user->edp_number   = '0000000000';
         $user->password     = Hash::make($password);

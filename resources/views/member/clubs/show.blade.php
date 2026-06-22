@@ -83,7 +83,7 @@
         </div>
         <div class="bg-[#1B5E20] rounded-xl p-4 text-center shadow-sm">
             <p class="text-white font-bold text-2xl">{{ $upcomingEvents->count() }}</p>
-            <p class="text-[#F9A825] text-xs font-semibold mt-0.5">Upcoming Events</p>
+            <p class="text-[#F9A825] text-xs font-semibold mt-0.5">Upcoming Activities</p>
         </div>
     </div>
 
@@ -98,16 +98,16 @@
     </div>
     @endif
 
-    {{-- Upcoming events --}}
+    {{-- Upcoming activities --}}
     <div>
         <div class="flex items-center justify-between mb-2">
-            <h2 class="text-sm font-semibold text-gray-700">Upcoming Events</h2>
+            <h2 class="text-sm font-semibold text-gray-700">Upcoming Activities</h2>
         </div>
         @forelse($upcomingEvents as $event)
-            <x-event-row :event="$event" />
+            <x-activity-row :event="$event" />
             @if(! $loop->last)<div class="border-b border-gray-100"></div>@endif
         @empty
-            <p class="text-sm text-gray-400 text-center py-4">No upcoming events.</p>
+            <p class="text-sm text-gray-400 text-center py-4">No upcoming activities.</p>
         @endforelse
     </div>
 

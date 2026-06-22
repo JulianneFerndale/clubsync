@@ -26,6 +26,10 @@ class ProfileController extends Controller
 
         $user = auth()->user();
 
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
         // Delete the old photo if it was locally stored
         if ($user->profile_photo_url && Str::startsWith($user->profile_photo_url, '/storage/')) {
             Storage::disk('public')->delete(Str::after($user->profile_photo_url, '/storage/'));
@@ -41,6 +45,10 @@ class ProfileController extends Controller
     public function deletePhoto(): RedirectResponse
     {
         $user = auth()->user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
 
         if ($user->profile_photo_url && Str::startsWith($user->profile_photo_url, '/storage/')) {
             Storage::disk('public')->delete(Str::after($user->profile_photo_url, '/storage/'));

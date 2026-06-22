@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Member;
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\Club;
+use App\Models\ClubActivity;
 use App\Models\ClubMember;
-use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,8 +22,8 @@ class ClubController extends Controller
 
         if ($search->isNotEmpty()) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('acronym', 'like', "%{$search}%");
+                $q->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower((string) $search).'%'])
+                  ->orWhereRaw('LOWER(acronym) LIKE ?', ['%'.strtolower((string) $search).'%']);
             });
         }
 
@@ -45,7 +45,7 @@ class ClubController extends Controller
     {
         $club->load('college', 'adviserUser');
 
-        $upcomingEvents = Event::where('club_id', $club->id)
+        $upcomingEvents = ClubActivity::where('club_id', $club->id)
             ->upcoming()
             ->take(3)
             ->get();

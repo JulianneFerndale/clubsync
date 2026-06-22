@@ -10,13 +10,14 @@ class SessionManager
     /**
      * Store Firebase auth data in the Laravel session.
      */
-    public function store(string $idToken, string $uid, string $role, int $userId): void
+    public function store(string $idToken, string $uid, string $role, int $userId, bool $isAdmin = false): void
     {
         session([
             'firebase_id_token'  => $idToken,
             'firebase_uid'       => $uid,
             'firebase_user_role' => $role,
             'firebase_user_id'   => $userId,
+            'firebase_is_admin'  => $isAdmin,
         ]);
     }
 

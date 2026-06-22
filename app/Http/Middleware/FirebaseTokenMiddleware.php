@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use App\Services\AuthManager;
 use App\Services\SessionManager;
 use Closure;
@@ -38,6 +39,14 @@ class FirebaseTokenMiddleware
                 Log::warning('Firebase token refresh failed: ' . $e->getMessage());
                 return $this->sessionExpired($request);
             }
+        }
+
+        // Populate Laravel's auth guard from the Firebase session for this request.
+        // Login is Firebase-based and never calls Auth::login, so without this
+        // auth()->user() is null everywhere — breaking name/avatar display in every
+        // layout and causing a fatal "update() on null" when changing a profile photo.
+        if (($userId = session('firebase_user_id')) && ($user = User::find($userId))) {
+            auth()->setUser($user);
         }
 
         $response = $next($request);

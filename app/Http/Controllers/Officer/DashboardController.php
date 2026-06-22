@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\Club;
 use App\Models\ClubMember;
+use App\Models\ClubActivity;
 use App\Models\ClubOfficer;
-use App\Models\Event;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -26,7 +26,7 @@ class DashboardController extends Controller
         $recentPosts   = collect();
 
         if ($club) {
-            $nextEvent   = Event::where('club_id', $club->id)->upcoming()->first();
+            $nextEvent   = ClubActivity::where('club_id', $club->id)->upcoming()->first();
             $memberCount = ClubMember::where('club_id', $club->id)
                 ->where('status', 'active')->count();
             $recentPosts = Announcement::where('club_id', $club->id)

@@ -30,9 +30,9 @@ class Club extends Model
         return $this->hasMany(ClubOfficer::class);
     }
 
-    public function events(): HasMany
+    public function activities(): HasMany
     {
-        return $this->hasMany(Event::class);
+        return $this->hasMany(ClubActivity::class);
     }
 
     public function announcements(): HasMany

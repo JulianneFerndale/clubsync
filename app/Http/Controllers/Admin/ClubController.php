@@ -19,8 +19,8 @@ class ClubController extends Controller
             ->where('club_type', 'Academic')
             ->where('is_active', true)
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('acronym', 'like', "%{$search}%");
+                $q->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($search).'%'])
+                  ->orWhereRaw('LOWER(acronym) LIKE ?', ['%'.strtolower($search).'%']);
             }))
             ->get()
             ->groupBy('department_slug');
@@ -37,8 +37,8 @@ class ClubController extends Controller
         $clubs = Club::where('club_type', 'Non-Academic')
             ->where('is_active', true)
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('acronym', 'like', "%{$search}%");
+                $q->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($search).'%'])
+                  ->orWhereRaw('LOWER(acronym) LIKE ?', ['%'.strtolower($search).'%']);
             }))
             ->get();
 

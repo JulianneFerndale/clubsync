@@ -48,7 +48,7 @@ class RegisterController extends Controller
             'register.first_name'    => $validated['first_name'],
             'register.last_name'     => $validated['last_name'],
             'register.edp_number'    => $validated['edp_number'],
-            'register.email'         => $validated['email'],
+            'register.email'         => strtolower($validated['email']),
             'register.password'      => $validated['password'],
             'register.mobile_number' => $validated['mobile_number'],
         ]);

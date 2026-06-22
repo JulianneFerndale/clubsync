@@ -17,7 +17,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', 'pgsql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -97,6 +97,10 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Seconds to wait for a DB connection before failing — keeps the app
+            // from hanging when the database/internet is unreachable. Honoured by
+            // App\Database\ResilientPostgresConnector.
+            'connect_timeout' => env('DB_CONNECT_TIMEOUT', 5),
         ],
 
         'sqlsrv' => [

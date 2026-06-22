@@ -10,7 +10,7 @@ class EnsureAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user() || ! $request->user()->is_admin) {
+        if (! session('firebase_user_id') || ! auth_is_admin()) {
             abort(403, 'Unauthorized.');
         }
 

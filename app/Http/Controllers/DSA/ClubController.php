@@ -23,8 +23,8 @@ class ClubController extends Controller
             ->when($type === 'academic',     fn ($q) => $q->academic())
             ->when($type === 'non_academic', fn ($q) => $q->nonAcademic())
             ->when($search, fn ($q) => $q->where(fn ($q) => $q
-                ->where('name', 'like', "%{$search}%")
-                ->orWhere('acronym', 'like', "%{$search}%")
+                ->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($search).'%'])
+                ->orWhereRaw('LOWER(acronym) LIKE ?', ['%'.strtolower($search).'%'])
             ))
             ->withCount(['members as active_member_count' => fn ($q) => $q->where('status', 'active')])
             ->with('adviserUser', 'college')
@@ -87,14 +87,14 @@ class ClubController extends Controller
             ->with('user')
             ->paginate(10);
 
-        $recentEvents = $club->events()
+        $recentEvents = $club->activities()
             ->orderByDesc('date')
             ->take(5)
             ->get();
 
         $stats = [
-            'members'  => $club->members()->where('status', 'active')->count(),
-            'events'   => $club->events()->count(),
+            'members'    => $club->members()->where('status', 'active')->count(),
+            'activities' => $club->activities()->count(),
             'officers' => $club->officers()->count(),
             'pending'  => $club->members()->where('status', 'pending')->count(),
         ];

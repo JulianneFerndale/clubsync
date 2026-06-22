@@ -6,7 +6,7 @@
 
 {{-- Header --}}
 <div class="bg-[#1B5E20] px-5 pt-5 pb-6">
-    <a href="{{ route('officer.events.show', $event) }}" class="text-white/70 hover:text-white mb-4 inline-block">
+    <a href="{{ route('officer.activities.show', $event) }}" class="text-white/70 hover:text-white mb-4 inline-block">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
         </svg>
@@ -79,7 +79,7 @@
                     <div class="flex items-center gap-1.5 flex-shrink-0">
                         @if(! $hasIn)
                             {{-- Check In --}}
-                            <form method="POST" action="{{ route('officer.events.attendance.record', [$event, $member]) }}">
+                            <form method="POST" action="{{ route('officer.activities.attendance.record', [$event, $member]) }}">
                                 @csrf
                                 <input type="hidden" name="action" value="in">
                                 <button type="submit"
@@ -89,7 +89,7 @@
                             </form>
                         @elseif(! $hasOut)
                             {{-- Check Out --}}
-                            <form method="POST" action="{{ route('officer.events.attendance.record', [$event, $member]) }}">
+                            <form method="POST" action="{{ route('officer.activities.attendance.record', [$event, $member]) }}">
                                 @csrf
                                 <input type="hidden" name="action" value="out">
                                 <button type="submit"
@@ -98,7 +98,7 @@
                                 </button>
                             </form>
                             {{-- Undo check-in --}}
-                            <form method="POST" action="{{ route('officer.events.attendance.record', [$event, $member]) }}">
+                            <form method="POST" action="{{ route('officer.activities.attendance.record', [$event, $member]) }}">
                                 @csrf
                                 <input type="hidden" name="action" value="undo">
                                 <button type="submit"
@@ -109,7 +109,7 @@
                         @else
                             {{-- Both recorded --}}
                             <span class="bg-green-100 text-green-700 text-[10px] font-semibold rounded-lg px-3 py-1.5">Done</span>
-                            <form method="POST" action="{{ route('officer.events.attendance.record', [$event, $member]) }}">
+                            <form method="POST" action="{{ route('officer.activities.attendance.record', [$event, $member]) }}">
                                 @csrf
                                 <input type="hidden" name="action" value="undo">
                                 <button type="submit"

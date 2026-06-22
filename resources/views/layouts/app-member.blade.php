@@ -18,6 +18,8 @@
 </head>
 <body class="bg-gray-100 min-h-screen font-sans antialiased">
 
+    @php($unreadCount = auth_user_id() ? \App\Models\ClubNotification::unreadCountFor(auth_user_id()) : 0)
+
     {{-- ── Desktop fixed sidebar (md+) ───────────────────────────────────── --}}
     <aside class="hidden md:flex flex-col fixed inset-y-0 left-0 w-64 bg-[#1B5E20] z-30">
         <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10">
@@ -46,7 +48,6 @@
                 </svg>
                 Bulletin
             </a>
-            @php $unreadCount = auth_user_id() ? \App\Models\ClubNotification::unreadCountFor(auth_user_id()) : 0; @endphp
             <a href="{{ route('member.notifications.index') }}"
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                       {{ request()->routeIs('member.notifications*') ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
@@ -190,14 +191,13 @@
         <header class="hidden md:flex items-center justify-between px-8 py-4 bg-white border-b border-gray-100 sticky top-0 z-10">
             <h1 class="text-lg font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h1>
             <div class="flex items-center gap-3">
-                @php $desktopUnread = auth_user_id() ? \App\Models\ClubNotification::unreadCountFor(auth_user_id()) : 0; @endphp
                 <a href="{{ route('member.notifications.index') }}" class="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
                     <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
                     </svg>
-                    @if($desktopUnread > 0)
+                    @if($unreadCount > 0)
                         <span class="absolute top-1 right-1 w-4 h-4 bg-[#F9A825] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                            {{ $desktopUnread > 9 ? '9+' : $desktopUnread }}
+                            {{ $unreadCount > 9 ? '9+' : $unreadCount }}
                         </span>
                     @endif
                 </a>
@@ -214,5 +214,6 @@
     {{-- Bottom nav: mobile only (has md:hidden) --}}
     <x-bottom-nav />
 
+    <x-connection-status />
 </body>
 </html>

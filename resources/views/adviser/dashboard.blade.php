@@ -48,17 +48,17 @@
     </a>
     @endif
 
-    {{-- Upcoming events --}}
+    {{-- Upcoming activities --}}
     <div>
         <div class="flex items-center justify-between mb-2">
-            <h2 class="text-sm font-semibold text-gray-700">Upcoming Events</h2>
+            <h2 class="text-sm font-semibold text-gray-700">Upcoming Activities</h2>
             <a href="#" class="text-xs text-[#1B5E20] font-medium">See all</a>
         </div>
         @forelse($upcomingEvents as $event)
-            <x-event-row :event="$event" />
+            <x-activity-row :event="$event" />
             @if(! $loop->last)<div class="border-b border-gray-100"></div>@endif
         @empty
-            <p class="text-sm text-gray-400 text-center py-6">No upcoming events scheduled.</p>
+            <p class="text-sm text-gray-400 text-center py-6">No upcoming activities scheduled.</p>
         @endforelse
     </div>
 

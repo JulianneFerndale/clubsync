@@ -33,9 +33,11 @@ Business rules and institutional policies for ClubSync. These govern behavior th
 
 ## Event Creation
 
-- Event creation by officers is direct — no approval queue, no letter drafting required. On submission, the event is immediately saved as `Scheduled`.
-- Required fields: Event Title, Date, Venue (from predefined SCC venue list), Purpose/Objectives, Expected Number of Participants. Block submission if any are missing.
+- Internal meetings remain direct — no approval queue, no letter drafting required. On submission, an internal meeting is immediately saved as `Scheduled` / `no_approval_needed`.
+- Activities classified as ACLE, community involvement, campus resource use, or other external activity require DSA approval before being considered confirmed. These are saved as `pending_approval` and the DSA is notified; an approval letter may be attached. DSA approves or rejects with optional remarks.
+- Required fields: Event/Activity Title, Date, Venue (from predefined SCC venue list), Purpose/Objectives, Expected Number of Participants. Block submission if any are missing.
 - Venues must come from the SCC-configured list (Gymnasium, Main AV Room, Open Court, Function Hall, Covered Court, etc.) — not free-text.
+- Officers may edit any activity at any time. If an edit is made to an activity that was previously `approved` and is not an internal meeting, its status resets to `pending_approval` and the DSA is notified again.
 
 ## AI & Automation
 
@@ -52,11 +54,11 @@ Business rules and institutional policies for ClubSync. These govern behavior th
 
 ## Notifications
 
-- Notifications are in-system only — no SMS or direct email integrations.
+- Notifications are in-system only — no SMS or direct email integrations. This applies to all notification types, including AI-drafted compliance/violation notices.
 - Notifications must be persisted so offline users see them on next login.
 - Dismissal state is stored in the database; dismissed notifications must not reappear.
 
 ## Club Registry
 
-- There are exactly 12 academic clubs (course-mapped) and 22 non-academic clubs (open to all students), for 34 total. The registry is maintained by the Administrator and is the authoritative source for auto-enrollment and the AI chatbot's recommendations.
+- There are exactly 19 academic clubs (course-mapped) and 23 non-academic clubs (open to all students), for 42 total. The registry is maintained by the Administrator and is the authoritative source for auto-enrollment and the AI chatbot's recommendations.
 - The four SCC colleges for enrollment routing: College of Teacher Education, Arts and Sciences; College of Business Education (CBE); College of Criminology (COC); College of Computing Studies (CCS).

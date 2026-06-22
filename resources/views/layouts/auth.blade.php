@@ -90,5 +90,6 @@
         </div>
     </div>
 
+    <x-connection-status />
 </body>
 </html>

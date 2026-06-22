@@ -14,9 +14,9 @@ class Attendance extends Model
         'time_out' => 'datetime',
     ];
 
-    public function event(): BelongsTo
+    public function activity(): BelongsTo
     {
-        return $this->belongsTo(Event::class);
+        return $this->belongsTo(ClubActivity::class, 'event_id');
     }
 
     public function user(): BelongsTo

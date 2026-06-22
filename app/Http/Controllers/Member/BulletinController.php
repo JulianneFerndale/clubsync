@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\AnnouncementComment;
 use App\Models\AnnouncementLike;
+use App\Models\ClubNarrative;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,7 +24,13 @@ class BulletinController extends Controller
             ->pluck('announcement_id')
             ->flip();
 
-        return view('member.bulletin.index', compact('announcements', 'likedIds'));
+        // Adviser-approved AI narratives — a read-only recap of what clubs have been up to.
+        $narratives = ClubNarrative::published()
+            ->with('club')
+            ->take(10)
+            ->get();
+
+        return view('member.bulletin.index', compact('announcements', 'likedIds', 'narratives'));
     }
 
     public function show(Announcement $announcement): View

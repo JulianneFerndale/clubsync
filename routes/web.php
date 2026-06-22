@@ -11,6 +11,26 @@ Route::get('/', fn () => view('start'))->name('start');
 Route::get('/welcome', fn () => view('welcome'))->name('welcome');
 Route::get('/terms', fn () => view('terms'))->name('terms');
 
+// Offline fallback page (served by the service worker when a navigation fails).
+// Kept public + dependency-free so it always renders without a network connection.
+Route::get('/offline', fn () => view('offline'))->name('offline');
+
+// Health probe used by the on-screen connection banner and the offline page's
+// auto-reload. It confirms the app can actually serve data: a cheap "SELECT 1"
+// verifies the Supabase database is reachable. Returns 204 when healthy, 503 when
+// the database (i.e. the internet) is unavailable — so the client never reloads
+// into a fatal error. The service worker is configured to never cache this route.
+Route::get('/ping', function () {
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        \Illuminate\Support\Facades\DB::select('select 1');
+
+        return response()->noContent(); // 204 — reachable
+    } catch (\Throwable) {
+        return response()->json(['status' => 'unreachable'], 503, ['Retry-After' => 10]);
+    }
+})->name('ping');
+
 // Guest-only auth routes
 Route::middleware('guest.firebase')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
@@ -38,6 +58,11 @@ Route::middleware('firebase.token')->group(function () {
     Route::delete('/profile/photo', [ProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
 });
 
+// ─── Admin (is_admin flag, layered on top of any role) ───────────────────────
+Route::middleware(['firebase.token', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+});
+
 // ─── DSA ────────────────────────────────────────────────────────────────────
 Route::middleware(['firebase.token', 'role:dsa'])->prefix('dsa')->name('dsa.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DSA\DashboardController::class, 'index'])->name('dashboard');
@@ -48,6 +73,62 @@ Route::middleware(['firebase.token', 'role:dsa'])->prefix('dsa')->name('dsa.')->
     Route::get('/clubs/{club}',      [\App\Http\Controllers\DSA\ClubController::class, 'show'])->name('clubs.show');
     Route::get('/clubs/{club}/edit', [\App\Http\Controllers\DSA\ClubController::class, 'edit'])->name('clubs.edit');
     Route::patch('/clubs/{club}',    [\App\Http\Controllers\DSA\ClubController::class, 'update'])->name('clubs.update');
+
+    // Member registration review
+    Route::get('/clubs/{club}/members',                  [\App\Http\Controllers\DSA\ClubMemberController::class, 'index'])->name('clubs.members.index');
+    Route::post('/clubs/{club}/members/{member}/approve', [\App\Http\Controllers\DSA\ClubMemberController::class, 'approve'])->name('clubs.members.approve');
+    Route::post('/clubs/{club}/members/{member}/reject',  [\App\Http\Controllers\DSA\ClubMemberController::class, 'reject'])->name('clubs.members.reject');
+
+    // Officer records (read-only)
+    Route::get('/clubs/{club}/officers', [\App\Http\Controllers\DSA\ClubOfficerRecordController::class, 'index'])->name('clubs.officers.index');
+
+    // Activity approval + monitor
+    Route::get('/activities',                       [\App\Http\Controllers\DSA\ActivityController::class, 'review'])->name('activities.review');
+    Route::get('/activities/monitor',                [\App\Http\Controllers\DSA\ActivityController::class, 'monitor'])->name('activities.monitor');
+    Route::get('/activities/{event}',                [\App\Http\Controllers\DSA\ActivityController::class, 'show'])->name('activities.show');
+    Route::post('/activities/{event}/approve',       [\App\Http\Controllers\DSA\ActivityController::class, 'approve'])->name('activities.approve');
+    Route::post('/activities/{event}/reject',        [\App\Http\Controllers\DSA\ActivityController::class, 'reject'])->name('activities.reject');
+    Route::get('/activities/{event}/letter',         [\App\Http\Controllers\DSA\ActivityController::class, 'downloadLetter'])->name('activities.letter');
+
+    // CHED reports (finalized only)
+    Route::get('/reports',               [\App\Http\Controllers\DSA\ChedReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/{report}/pdf',  [\App\Http\Controllers\DSA\ChedReportController::class, 'downloadPdf'])->name('reports.pdf');
+    Route::get('/reports/{report}/xlsx', [\App\Http\Controllers\DSA\ChedReportController::class, 'downloadXlsx'])->name('reports.xlsx');
+
+    // AI-assisted violation/compliance review
+    Route::get('/violations',                    [\App\Http\Controllers\DSA\ViolationController::class, 'index'])->name('violations.index');
+    Route::get('/violations/{violation}',        [\App\Http\Controllers\DSA\ViolationController::class, 'show'])->name('violations.show');
+    Route::post('/violations/{violation}/approve', [\App\Http\Controllers\DSA\ViolationController::class, 'approve'])->name('violations.approve');
+    Route::post('/violations/{violation}/dismiss', [\App\Http\Controllers\DSA\ViolationController::class, 'dismiss'])->name('violations.dismiss');
+});
+
+// ─── Club Member Registration (officer + adviser submission) ────────────────
+Route::middleware(['firebase.token', 'role:officer,adviser'])->prefix('clubs/members')->name('clubs.members.')->group(function () {
+    Route::get('/',         [\App\Http\Controllers\ClubMemberController::class, 'index'])->name('index');
+    Route::post('/submit',  [\App\Http\Controllers\ClubMemberController::class, 'store'])->name('store');
+});
+
+// ─── Semestral Member Presence (officer + adviser) ───────────────────────────
+Route::middleware(['firebase.token', 'role:officer,adviser'])->prefix('clubs/presence')->name('clubs.presence.')->group(function () {
+    Route::get('/',                      [\App\Http\Controllers\MemberPresenceController::class, 'index'])->name('index');
+    Route::post('/{member}/status',      [\App\Http\Controllers\MemberPresenceController::class, 'update'])->name('update');
+    Route::post('/notify-dsa',           [\App\Http\Controllers\MemberPresenceController::class, 'notifyDsa'])->name('notify');
+});
+
+// ─── Club Officer Records (officer + adviser) ────────────────────────────────
+Route::middleware(['firebase.token', 'role:officer,adviser'])->prefix('clubs/officers')->name('clubs.officers.')->group(function () {
+    Route::get('/',                  [\App\Http\Controllers\ClubOfficerRecordController::class, 'index'])->name('index');
+    Route::get('/create',            [\App\Http\Controllers\ClubOfficerRecordController::class, 'create'])->name('create');
+    Route::post('/',                 [\App\Http\Controllers\ClubOfficerRecordController::class, 'store'])->name('store');
+    Route::get('/{record}/edit',     [\App\Http\Controllers\ClubOfficerRecordController::class, 'edit'])->name('edit');
+    Route::patch('/{record}',        [\App\Http\Controllers\ClubOfficerRecordController::class, 'update'])->name('update');
+    Route::post('/{record}/archive', [\App\Http\Controllers\ClubOfficerRecordController::class, 'archive'])->name('archive');
+});
+
+// ─── Club Violations / Compliance Notices (officer + adviser) ───────────────
+Route::middleware(['firebase.token', 'role:officer,adviser'])->prefix('clubs/violations')->name('clubs.violations.')->group(function () {
+    Route::get('/',                   [\App\Http\Controllers\ClubViolationController::class, 'index'])->name('index');
+    Route::post('/{violation}/resolve', [\App\Http\Controllers\ClubViolationController::class, 'resolve'])->name('resolve');
 });
 
 // ─── Adviser ────────────────────────────────────────────────────────────────
@@ -60,22 +141,37 @@ Route::middleware(['firebase.token', 'role:adviser'])->prefix('adviser')->name('
     Route::post('/announcements/{announcement}/approve',           [\App\Http\Controllers\Adviser\AnnouncementController::class, 'approve'])->name('announcements.approve');
     Route::post('/announcements/{announcement}/request-revision',  [\App\Http\Controllers\Adviser\AnnouncementController::class, 'requestRevision'])->name('announcements.request-revision');
     Route::post('/announcements/{announcement}/reject',            [\App\Http\Controllers\Adviser\AnnouncementController::class, 'reject'])->name('announcements.reject');
+
+    // AI club narrative review queue
+    Route::get('/narratives',                        [\App\Http\Controllers\Adviser\NarrativeController::class, 'index'])->name('narratives.index');
+    Route::get('/narratives/{narrative}',            [\App\Http\Controllers\Adviser\NarrativeController::class, 'show'])->name('narratives.show');
+    Route::post('/narratives/{narrative}/approve',   [\App\Http\Controllers\Adviser\NarrativeController::class, 'approve'])->name('narratives.approve');
+    Route::post('/narratives/{narrative}/discard',   [\App\Http\Controllers\Adviser\NarrativeController::class, 'discard'])->name('narratives.discard');
 });
 
 // ─── Officer (president / treasurer / mmo) ───────────────────────────────────
 Route::middleware(['firebase.token', 'role:officer'])->prefix('officer')->name('officer.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Officer\DashboardController::class, 'index'])->name('dashboard');
 
-    // Events
-    Route::get('/events',              [\App\Http\Controllers\Officer\EventController::class, 'index'])->name('events.index');
-    Route::get('/events/create',       [\App\Http\Controllers\Officer\EventController::class, 'create'])->name('events.create');
-    Route::post('/events',             [\App\Http\Controllers\Officer\EventController::class, 'store'])->name('events.store');
-    Route::get('/events/{event}',      [\App\Http\Controllers\Officer\EventController::class, 'show'])->name('events.show');
-    Route::post('/events/{event}/complete', [\App\Http\Controllers\Officer\EventController::class, 'complete'])->name('events.complete');
+    // Activities
+    Route::get('/activities',              [\App\Http\Controllers\Officer\ActivityController::class, 'index'])->name('activities.index');
+    Route::get('/activities/create',       [\App\Http\Controllers\Officer\ActivityController::class, 'create'])->name('activities.create');
+    Route::post('/activities',             [\App\Http\Controllers\Officer\ActivityController::class, 'store'])->name('activities.store');
+    Route::get('/activities/{event}',      [\App\Http\Controllers\Officer\ActivityController::class, 'show'])->name('activities.show');
+    Route::get('/activities/{event}/edit', [\App\Http\Controllers\Officer\ActivityController::class, 'edit'])->name('activities.edit');
+    Route::patch('/activities/{event}',    [\App\Http\Controllers\Officer\ActivityController::class, 'update'])->name('activities.update');
+    Route::post('/activities/{event}/complete', [\App\Http\Controllers\Officer\ActivityController::class, 'complete'])->name('activities.complete');
+    Route::get('/activities/{event}/letter', [\App\Http\Controllers\Officer\ActivityController::class, 'downloadLetter'])->name('activities.letter');
 
     // Attendance
-    Route::get('/events/{event}/attendance',              [\App\Http\Controllers\Officer\AttendanceController::class, 'index'])->name('events.attendance');
-    Route::post('/events/{event}/attendance/{user}',      [\App\Http\Controllers\Officer\AttendanceController::class, 'record'])->name('events.attendance.record');
+    Route::get('/activities/{event}/attendance',              [\App\Http\Controllers\Officer\AttendanceController::class, 'index'])->name('activities.attendance');
+    Route::post('/activities/{event}/attendance/{user}',      [\App\Http\Controllers\Officer\AttendanceController::class, 'record'])->name('activities.attendance.record');
+
+    // CHED reports
+    Route::patch('/reports/{report}',              [\App\Http\Controllers\Officer\ChedReportController::class, 'update'])->name('reports.update');
+    Route::post('/reports/{report}/finalize',       [\App\Http\Controllers\Officer\ChedReportController::class, 'finalize'])->name('reports.finalize');
+    Route::get('/reports/{report}/pdf',             [\App\Http\Controllers\Officer\ChedReportController::class, 'downloadPdf'])->name('reports.pdf');
+    Route::get('/reports/{report}/xlsx',            [\App\Http\Controllers\Officer\ChedReportController::class, 'downloadXlsx'])->name('reports.xlsx');
 
     // Fees
     Route::get('/fees',                                   [\App\Http\Controllers\Officer\FeeController::class, 'index'])->name('fees.index');

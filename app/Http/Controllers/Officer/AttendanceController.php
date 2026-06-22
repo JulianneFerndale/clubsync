@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Officer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\ClubActivity;
 use App\Models\ClubMember;
 use App\Models\ClubOfficer;
-use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +22,7 @@ class AttendanceController extends Controller
             ?->club;
     }
 
-    public function index(Event $event): View
+    public function index(ClubActivity $event): View
     {
         $club = $this->officerClub();
 
@@ -40,15 +40,15 @@ class AttendanceController extends Controller
             ->orderBy('first_name')
             ->get();
 
-        // Attendance records for this event, keyed by user_id
+        // Attendance records for this activity, keyed by user_id
         $attendance = Attendance::where('event_id', $event->id)
             ->get()
             ->keyBy('user_id');
 
-        return view('officer.events.attendance', compact('event', 'club', 'members', 'attendance'));
+        return view('officer.activities.attendance', compact('event', 'club', 'members', 'attendance'));
     }
 
-    public function record(Request $request, Event $event, User $user): RedirectResponse
+    public function record(Request $request, ClubActivity $event, User $user): RedirectResponse
     {
         $club = $this->officerClub();
 

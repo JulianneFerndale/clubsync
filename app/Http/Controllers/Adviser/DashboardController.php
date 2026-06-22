@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Adviser;
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\Club;
+use App\Models\ClubActivity;
 use App\Models\ClubMember;
-use App\Models\Event;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $memberCount          = 0;
 
         if ($club) {
-            $upcomingEvents      = Event::where('club_id', $club->id)->upcoming()->take(5)->get();
+            $upcomingEvents      = ClubActivity::where('club_id', $club->id)->upcoming()->take(5)->get();
             $pendingCount        = Announcement::where('club_id', $club->id)->pendingReview()->count();
             $recentAnnouncements = Announcement::where('club_id', $club->id)
                 ->orderByDesc('created_at')->take(5)->get();

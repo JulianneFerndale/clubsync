@@ -20,3 +20,10 @@ if (! function_exists('auth_user_id')) {
         return (int) session('firebase_user_id', 0);
     }
 }
+
+if (! function_exists('auth_is_admin')) {
+    function auth_is_admin(): bool
+    {
+        return (bool) session('firebase_is_admin', false);
+    }
+}

@@ -14,12 +14,12 @@ class ActivityController extends Controller
     {
         $userId = auth_user_id();
 
-        // Attendance records with event + club, grouped by month label
+        // Attendance records with activity + club, grouped by month label
         $attendanceRecords = Attendance::where('user_id', $userId)
-            ->with(['event.club'])
+            ->with(['activity.club'])
             ->orderByDesc('time_in')
             ->get()
-            ->groupBy(fn ($a) => $a->event?->date?->format('F Y') ?? 'Unknown');
+            ->groupBy(fn ($a) => $a->activity?->date?->format('F Y') ?? 'Unknown');
 
         // Fee payments with fee + club details
         $feePayments = FeePayment::where('user_id', $userId)

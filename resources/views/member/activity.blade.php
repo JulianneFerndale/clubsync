@@ -45,7 +45,7 @@
                     </p>
                     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
                         @foreach($records as $record)
-                            @php $event = $record->event; @endphp
+                            @php $event = $record->activity; @endphp
                             <div class="flex items-start gap-3 px-4 py-3.5 {{ $event ? '' : 'opacity-60' }}">
 
                                 {{-- Date badge --}}
@@ -61,10 +61,10 @@
                                 {{-- Info --}}
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-semibold text-gray-900 truncate">
-                                        {{ $event?->title ?? 'Deleted Event' }}
+                                        {{ $event?->title ?? 'Deleted Activity' }}
                                     </p>
                                     <p class="text-xs text-gray-500 mt-0.5">
-                                        {{ $event?->club?->acronym ?? $event?->club?->name ?? ($event ? '' : 'This event no longer exists') }}
+                                        {{ $event?->club?->acronym ?? $event?->club?->name ?? ($event ? '' : 'This activity no longer exists') }}
                                     </p>
 
                                     {{-- Check in/out times --}}

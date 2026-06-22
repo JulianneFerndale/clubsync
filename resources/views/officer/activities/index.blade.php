@@ -7,7 +7,7 @@
 {{-- Month navigation header --}}
 <div class="bg-[#1B5E20] px-5 py-4">
     <div class="flex items-center justify-between">
-        <a href="{{ route('officer.events.index', ['month' => $prevMonth->month, 'year' => $prevMonth->year]) }}"
+        <a href="{{ route('officer.activities.index', ['month' => $prevMonth->month, 'year' => $prevMonth->year]) }}"
            class="p-1.5 text-white/70 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 19.5 8.25 12l7.5-7.5"/>
@@ -16,7 +16,7 @@
         <div class="text-center">
             <p class="text-white font-bold text-lg">{{ $startOfMonth->format('F Y') }}</p>
         </div>
-        <a href="{{ route('officer.events.index', ['month' => $nextMonth->month, 'year' => $nextMonth->year]) }}"
+        <a href="{{ route('officer.activities.index', ['month' => $nextMonth->month, 'year' => $nextMonth->year]) }}"
            class="p-1.5 text-white/70 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
@@ -77,7 +77,7 @@
     @endif
 </div>
 
-{{-- Upcoming events grouped by month --}}
+{{-- Upcoming activities grouped by month --}}
 <div class="px-4 py-4 space-y-5">
 
     @if(! $club)
@@ -89,7 +89,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
                 </svg>
             </div>
-            <p class="text-sm text-gray-400 font-medium">No upcoming events</p>
+            <p class="text-sm text-gray-400 font-medium">No upcoming activities</p>
             <p class="text-xs text-gray-300 mt-1">Tap + to schedule one</p>
         </div>
     @else
@@ -101,7 +101,7 @@
                 </p>
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
                     @foreach($events as $event)
-                        <a href="{{ route('officer.events.show', $event) }}"
+                        <a href="{{ route('officer.activities.show', $event) }}"
                            class="flex items-start gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors">
 
                             {{-- Date badge --}}
@@ -121,7 +121,7 @@
                                     <span class="inline-block px-2 py-0.5 bg-[#1B5E20]/10 text-[#1B5E20] text-[10px] font-semibold rounded-full">
                                         {{ $event->club->acronym ?? $event->club->name }}
                                     </span>
-                                    <x-status-badge :status="$event->event_type" />
+                                    <x-status-badge :status="$event->activity_type" />
                                 </div>
                             </div>
 
@@ -136,8 +136,8 @@
     @endif
 </div>
 
-{{-- FAB: Add event --}}
-<a href="{{ route('officer.events.create') }}"
+{{-- FAB: Add activity --}}
+<a href="{{ route('officer.activities.create') }}"
    class="fixed bottom-20 right-4 w-14 h-14 bg-[#1B5E20] rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity z-30">
     <svg class="w-7 h-7 text-[#F9A825]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.5v15m7.5-7.5h-15"/>

@@ -11,6 +11,33 @@
 
 <div class="px-4 py-5 space-y-4">
 
+    {{-- Club Stories — adviser-approved AI narratives --}}
+    @if($narratives->isNotEmpty())
+        <div class="space-y-3">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest px-1">Club Stories</p>
+            @foreach($narratives as $narrative)
+                <div class="bg-white rounded-xl border border-purple-100 shadow-sm overflow-hidden">
+                    <div class="flex items-center gap-2.5 px-4 pt-3.5 pb-2.5 border-b border-gray-50">
+                        <div class="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                            <span class="text-purple-500 text-[10px] font-bold">
+                                {{ strtoupper(substr($narrative->club?->acronym ?? $narrative->club?->name ?? 'C', 0, 2)) }}
+                            </span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-semibold text-gray-700 truncate">{{ $narrative->club?->name ?? 'Unknown Club' }}</p>
+                            <p class="text-[10px] text-gray-400">{{ $narrative->published_at?->diffForHumans() }}</p>
+                        </div>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 text-[10px] font-semibold">✦ Narrative</span>
+                    </div>
+                    <div class="px-4 py-3">
+                        <p class="text-sm font-bold text-gray-900 mb-1">{{ $narrative->title }}</p>
+                        <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ $narrative->finalContent() }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     @if($announcements->isEmpty())
         <div class="text-center py-14">
             <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">

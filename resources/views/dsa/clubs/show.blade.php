@@ -52,18 +52,19 @@
 
     {{-- Stats grid --}}
     <div class="grid grid-cols-3 gap-2.5">
-        <div class="bg-[#1B5E20] rounded-xl p-3 text-center">
+        <a href="{{ route('dsa.clubs.members.index', $club) }}" class="bg-[#1B5E20] rounded-xl p-3 text-center">
             <p class="text-white font-bold text-2xl">{{ $stats['members'] }}</p>
             <p class="text-[#F9A825] text-[10px] font-semibold uppercase mt-0.5">Members</p>
-        </div>
+        </a>
         <div class="bg-[#1B5E20] rounded-xl p-3 text-center">
-            <p class="text-white font-bold text-2xl">{{ $stats['events'] }}</p>
-            <p class="text-[#F9A825] text-[10px] font-semibold uppercase mt-0.5">Events</p>
+            <p class="text-white font-bold text-2xl">{{ $stats['activities'] }}</p>
+            <p class="text-[#F9A825] text-[10px] font-semibold uppercase mt-0.5">Activities</p>
         </div>
-        <div class="bg-{{ $stats['pending'] > 0 ? '[#F9A825]' : '[#1B5E20]' }} rounded-xl p-3 text-center">
+        <a href="{{ route('dsa.clubs.members.index', $club) }}"
+           class="bg-{{ $stats['pending'] > 0 ? '[#F9A825]' : '[#1B5E20]' }} rounded-xl p-3 text-center">
             <p class="{{ $stats['pending'] > 0 ? 'text-[#1B5E20]' : 'text-white' }} font-bold text-2xl">{{ $stats['pending'] }}</p>
             <p class="{{ $stats['pending'] > 0 ? 'text-[#1B5E20]' : 'text-[#F9A825]' }} text-[10px] font-semibold uppercase mt-0.5">Pending</p>
-        </div>
+        </a>
     </div>
 
     {{-- Club meta --}}
@@ -90,7 +91,10 @@
 
     {{-- Officers --}}
     <div>
-        <h2 class="text-sm font-semibold text-gray-700 mb-2">Officers</h2>
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="text-sm font-semibold text-gray-700">Officers</h2>
+            <a href="{{ route('dsa.clubs.officers.index', $club) }}" class="text-xs text-[#1B5E20] font-medium">Officer Records</a>
+        </div>
         @forelse($club->officers as $officer)
             <div class="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-gray-100 shadow-sm mb-2">
                 <div class="w-9 h-9 rounded-full bg-[#1B5E20]/10 flex items-center justify-center flex-shrink-0">
@@ -134,12 +138,12 @@
         @endif
     </div>
 
-    {{-- Recent events --}}
+    {{-- Recent activities --}}
     @if($recentEvents->count())
     <div>
-        <h2 class="text-sm font-semibold text-gray-700 mb-2">Recent Events</h2>
+        <h2 class="text-sm font-semibold text-gray-700 mb-2">Recent Activities</h2>
         @foreach($recentEvents as $event)
-            <x-event-row :event="$event" />
+            <x-activity-row :event="$event" />
             @if(! $loop->last)<div class="border-b border-gray-100"></div>@endif
         @endforeach
     </div>

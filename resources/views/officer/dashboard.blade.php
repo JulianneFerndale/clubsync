@@ -44,12 +44,12 @@
 
     {{-- Quick actions --}}
     <div class="grid grid-cols-2 gap-3">
-        <a href="{{ route('officer.events.create') }}"
+        <a href="{{ route('officer.activities.create') }}"
            class="flex items-center justify-center gap-2 bg-[#1B5E20] text-[#F9A825] font-semibold text-sm rounded-xl py-3 hover:opacity-90 transition-opacity">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
             </svg>
-            Add Event
+            Add Activity
         </a>
         <a href="{{ route('officer.announcements.create') }}"
            class="flex items-center justify-center gap-2 bg-white border-2 border-[#1B5E20] text-[#1B5E20] font-semibold text-sm rounded-xl py-3 hover:bg-[#1B5E20]/5 transition-colors">
@@ -60,9 +60,9 @@
         </a>
     </div>
 
-    {{-- Next event --}}
+    {{-- Next activity --}}
     <div>
-        <h2 class="text-sm font-semibold text-gray-700 mb-2">Next Event</h2>
+        <h2 class="text-sm font-semibold text-gray-700 mb-2">Next Activity</h2>
         @if($nextEvent)
             <div class="bg-[#1B5E20] rounded-xl p-4 shadow-sm">
                 <div class="flex items-start gap-3">
@@ -82,7 +82,7 @@
             </div>
         @else
             <div class="bg-gray-50 rounded-xl p-4 text-center">
-                <p class="text-sm text-gray-400">No upcoming events. Add one above!</p>
+                <p class="text-sm text-gray-400">No upcoming activities. Add one above!</p>
             </div>
         @endif
     </div>
