@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
 {
+    // The migration creates this table as singular "attendance"; without this
+    // Eloquent would look for "attendances" and fail with "relation does not exist".
+    protected $table = 'attendance';
+
     protected $fillable = ['event_id', 'user_id', 'time_in', 'time_out', 'recorded_by'];
 
     protected $casts = [

@@ -13,6 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Register the broadcasting auth route under firebase.token so auth()->user()
+    // is populated from the Firebase session when Echo authorizes private channels.
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        attributes: ['middleware' => ['web', 'firebase.token']],
+    )
     ->withMiddleware(function (Middleware $middleware): void {
         // Honour X-Forwarded-* from a reverse proxy/tunnel (e.g. Expose/Herd
         // Share, ngrok, a production load balancer) so the app correctly detects

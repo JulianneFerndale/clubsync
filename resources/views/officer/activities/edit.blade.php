@@ -32,6 +32,7 @@
     @endif
 
     <form method="POST" action="{{ route('officer.activities.update', $event) }}" enctype="multipart/form-data" class="space-y-4"
+          data-loading="dialog" data-loading-message="Saving changes"
           x-data="{ activityType: '{{ old('activity_type', $event->activity_type) }}' }">
         @csrf
         @method('PATCH')

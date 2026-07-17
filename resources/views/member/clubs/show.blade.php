@@ -40,7 +40,8 @@
 
     {{-- Membership action --}}
     @if(! $membership)
-        <form method="POST" action="{{ route('member.clubs.join', $club) }}">
+        <form method="POST" action="{{ route('member.clubs.join', $club) }}"
+              data-loading="dialog" data-loading-message="Submitting membership request">
             @csrf
             <button type="submit"
                     class="w-full bg-[#1B5E20] text-[#F9A825] font-bold text-sm py-4 rounded-xl hover:opacity-90 transition-opacity shadow-sm">

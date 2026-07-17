@@ -24,7 +24,8 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('login') }}" class="space-y-5">
+        <form method="POST" action="{{ route('login') }}" class="space-y-5"
+              data-loading="splash" data-loading-message="Signing you in…">
             @csrf
 
             {{-- Email --}}

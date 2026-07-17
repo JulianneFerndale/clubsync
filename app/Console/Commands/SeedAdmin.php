@@ -14,6 +14,7 @@ class SeedAdmin extends Command
         {--password= : Admin password (defaults to the DSA admin)}
         {--first-name= : First name for the MySQL record}
         {--last-name= : Last name for the MySQL record}
+        {--edp-number= : EDP / student number (defaults to a placeholder)}
         {--firebase-uid= : Skip Firebase registration and use this UID directly}';
     protected $description = 'Create an admin account in Firebase and MySQL';
 
@@ -23,6 +24,7 @@ class SeedAdmin extends Command
         $password  = $this->option('password') ?: 'Admin@ClubSync1';
         $firstName = $this->option('first-name') ?: 'DSA';
         $lastName  = $this->option('last-name') ?: 'Admin';
+        $edpNumber = $this->option('edp-number') ?: '0000000000';
         $apiKey    = config('firebase.api_key');
 
         $this->info('Seeding admin user: ' . $email);
@@ -82,7 +84,7 @@ class SeedAdmin extends Command
         $user->first_name   = $firstName;
         $user->last_name    = $lastName;
         $user->email        = $email;
-        $user->edp_number   = '0000000000';
+        $user->edp_number   = $edpNumber;
         $user->password     = Hash::make($password);
         $user->role         = 'dsa';
         $user->is_admin     = true;

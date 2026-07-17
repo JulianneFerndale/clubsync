@@ -46,7 +46,10 @@ class ClubActivity extends Model
 
     public function attendance(): HasMany
     {
-        return $this->hasMany(Attendance::class);
+        // The attendance table's FK is still "event_id" (kept from before the
+        // events → club_activities rename), so specify it explicitly; otherwise
+        // Eloquent guesses "club_activity_id", which does not exist.
+        return $this->hasMany(Attendance::class, 'event_id');
     }
 
     public function changeLogs(): HasMany

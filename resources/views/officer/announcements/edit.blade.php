@@ -28,7 +28,8 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('officer.announcements.update', $announcement) }}" class="space-y-4">
+    <form method="POST" action="{{ route('officer.announcements.update', $announcement) }}" class="space-y-4"
+          data-loading="dialog" data-loading-message="Saving changes">
         @csrf
         @method('PATCH')
         <input type="hidden" name="ai_assisted" id="ai_assisted_flag" value="0">

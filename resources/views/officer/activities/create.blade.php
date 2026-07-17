@@ -33,6 +33,7 @@
     @endif
 
     <form method="POST" action="{{ route('officer.activities.store') }}" enctype="multipart/form-data" class="space-y-4" id="event-form"
+          data-loading="dialog" data-loading-message="Adding event"
           x-data="{ activityType: '{{ old('activity_type', 'internal_meeting') }}' }">
         @csrf
 

@@ -34,7 +34,8 @@
     @elseif($members->isEmpty())
         <p class="text-sm text-gray-400 text-center py-8">No members yet. Students who join this club will appear here.</p>
     @else
-        <form method="POST" action="{{ route('clubs.members.store') }}">
+        <form method="POST" action="{{ route('clubs.members.store') }}"
+              data-loading="dialog" data-loading-message="Submitting member registration">
             @csrf
 
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">

@@ -21,7 +21,8 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('officer.announcements.store') }}" class="space-y-4" id="ann-form">
+    <form method="POST" action="{{ route('officer.announcements.store') }}" class="space-y-4" id="ann-form"
+          data-loading="dialog" data-loading-message="Posting announcement">
         @csrf
         <input type="hidden" name="ai_assisted" id="ai_assisted_flag" value="0">
 

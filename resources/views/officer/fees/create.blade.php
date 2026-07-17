@@ -22,7 +22,8 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('officer.fees.store') }}" class="space-y-4">
+    <form method="POST" action="{{ route('officer.fees.store') }}" class="space-y-4"
+          data-loading="dialog" data-loading-message="Adding fee">
         @csrf
 
         {{-- Title --}}

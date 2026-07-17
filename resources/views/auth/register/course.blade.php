@@ -15,7 +15,8 @@
             </div>
         @enderror
 
-        <form method="POST" action="{{ route('register.course') }}" id="courseForm">
+        <form method="POST" action="{{ route('register.course') }}" id="courseForm"
+              data-loading="splash" data-loading-message="Enrolling you in your academic club…">
             @csrf
 
             {{-- Selected department card --}}

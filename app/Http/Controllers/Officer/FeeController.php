@@ -10,6 +10,7 @@ use App\Models\FeePayment;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class FeeController extends Controller
@@ -66,25 +67,32 @@ class FeeController extends Controller
             'academic_period.required' => 'Academic period is required.',
         ]);
 
-        $fee = Fee::create([
-            'club_id'         => $club->id,
-            'title'           => $validated['title'],
-            'amount'          => $validated['amount'],
-            'due_date'        => $validated['due_date'],
-            'academic_period' => $validated['academic_period'],
-        ]);
-
-        // Auto-create pending payment records for every active club member
+        // Wrap the fee + its per-member payment rows in a transaction so that a
+        // cancelled/aborted request (e.g. the user hits "Stop") never leaves a
+        // fee with only some members assigned — it all commits or none of it does.
         $memberIds = ClubMember::where('club_id', $club->id)
             ->where('status', 'active')
             ->pluck('user_id');
 
-        foreach ($memberIds as $userId) {
-            FeePayment::firstOrCreate(
-                ['fee_id' => $fee->id, 'user_id' => $userId],
-                ['status' => 'pending'],
-            );
-        }
+        $fee = DB::transaction(function () use ($club, $validated, $memberIds) {
+            $fee = Fee::create([
+                'club_id'         => $club->id,
+                'title'           => $validated['title'],
+                'amount'          => $validated['amount'],
+                'due_date'        => $validated['due_date'],
+                'academic_period' => $validated['academic_period'],
+            ]);
+
+            // Auto-create pending payment records for every active club member
+            foreach ($memberIds as $userId) {
+                FeePayment::firstOrCreate(
+                    ['fee_id' => $fee->id, 'user_id' => $userId],
+                    ['status' => 'pending'],
+                );
+            }
+
+            return $fee;
+        });
 
         return redirect()->route('officer.fees.show', $fee)
             ->with('success', 'Fee created and assigned to ' . $memberIds->count() . ' active members.');

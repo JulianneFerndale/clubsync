@@ -91,5 +91,6 @@
     </div>
 
     <x-connection-status />
+    <x-loading-overlay />
 </body>
 </html>

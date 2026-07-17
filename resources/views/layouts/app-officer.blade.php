@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="cs-user-id" content="{{ auth_user_id() }}">
     <meta name="theme-color" content="#1B5E20">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -236,5 +237,6 @@
     <x-officer-bottom-nav />
 
     <x-connection-status />
+    <x-loading-overlay />
 </body>
 </html>
