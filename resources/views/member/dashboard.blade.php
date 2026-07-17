@@ -27,7 +27,7 @@
         </a>
         <a href="{{ route('member.clubs.index') }}"
            class="flex items-center justify-center bg-[#1B5E20] text-[#F9A825] font-semibold text-sm rounded-xl py-3.5 hover:opacity-90 transition-opacity shadow-sm">
-            Browse Clubs
+            Browse Non-Acad
         </a>
     </div>
 

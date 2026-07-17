@@ -117,6 +117,43 @@ class FeeController extends Controller
         return view('officer.fees.show', compact('club', 'fee', 'payments', 'paidCount', 'pendingCount'));
     }
 
+    public function edit(Fee $fee): View
+    {
+        $club = $this->officerClub();
+
+        if (! $club || $fee->club_id !== $club->id) {
+            abort(403);
+        }
+
+        return view('officer.fees.edit', compact('club', 'fee'));
+    }
+
+    public function update(Request $request, Fee $fee): RedirectResponse
+    {
+        $club = $this->officerClub();
+
+        if (! $club || $fee->club_id !== $club->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'title'           => ['required', 'string', 'max:255'],
+            'amount'          => ['required', 'numeric', 'min:0.01'],
+            'due_date'        => ['required', 'date'],
+            'academic_period' => ['required', 'string', 'max:50'],
+        ], [
+            'title.required'           => 'Fee title is required.',
+            'amount.required'          => 'Amount is required.',
+            'amount.min'               => 'Amount must be greater than zero.',
+            'due_date.required'        => 'Due date is required.',
+            'academic_period.required' => 'Academic period is required.',
+        ]);
+
+        $fee->update($validated);
+
+        return redirect()->route('officer.fees.show', $fee)->with('success', 'Fee updated.');
+    }
+
     public function markPaid(Fee $fee, User $user): RedirectResponse
     {
         $club = $this->officerClub();

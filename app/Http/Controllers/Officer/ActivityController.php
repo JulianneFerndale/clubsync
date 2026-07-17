@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\GenerateChedReportJob;
 use App\Jobs\GenerateClubNarrativeJob;
 use App\Jobs\NotifyDsaOfActivitySubmission;
+use App\Jobs\SyncActivityToGoogleCalendar;
 use App\Models\ActivityChangeLog;
 use App\Models\ClubActivity;
 use App\Models\ClubOfficer;
@@ -179,6 +180,9 @@ class ActivityController extends Controller
             Log::warning('Firebase activity mirror failed for activity #' . $event->id . ': ' . $e->getMessage());
         }
 
+        // Confirmed activities (internal meetings) sync to Google Calendar in the background.
+        SyncActivityToGoogleCalendar::dispatch($event->id);
+
         return redirect()->route('officer.activities.index')
             ->with('success', 'Activity successfully scheduled!');
     }
@@ -290,6 +294,10 @@ class ActivityController extends Controller
         if ($wasApprovedAndNowNeedsReapproval) {
             NotifyDsaOfActivitySubmission::dispatch($event->id);
         }
+
+        // Re-sync to Google Calendar: updates the event, or removes it if the edit
+        // dropped it back to pending approval.
+        SyncActivityToGoogleCalendar::dispatch($event->id);
 
         return redirect()->route('officer.activities.show', $event)
             ->with('success', 'Activity updated.' . ($wasApprovedAndNowNeedsReapproval ? ' DSA approval is required again before this activity is confirmed.' : ''));

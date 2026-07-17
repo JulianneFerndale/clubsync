@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\NotifyDsaOfMemberSubmission;
+use App\Jobs\NotifyAdviserOfMemberSubmission;
+use App\Jobs\NotifyClubOfMemberDecision;
 use App\Models\Club;
 use App\Models\ClubMember;
 use App\Models\ClubOfficer;
@@ -71,9 +72,79 @@ class ClubMemberController extends Controller
             return back()->with('info', 'No eligible members were selected for submission.');
         }
 
-        NotifyDsaOfMemberSubmission::dispatch($club->id, $members->count(), auth_user_id());
+        NotifyAdviserOfMemberSubmission::dispatch($club->id, $members->count(), auth_user_id());
 
         return redirect()->route('clubs.members.index')
-            ->with('success', $members->count() . ' member(s) submitted to the DSA for review.');
+            ->with('success', $members->count() . ' member(s) submitted to your club adviser for review.');
+    }
+
+    /**
+     * Adviser approves a pending member of their own club. Officers cannot approve.
+     */
+    public function approve(ClubMember $member): RedirectResponse
+    {
+        $this->authorizeAdviser($member);
+
+        $member->update([
+            'registration_status' => 'approved',
+            'status'              => 'active',
+            'approved_by'         => auth_user_id(),
+            'approved_at'         => now(),
+            'dsa_remarks'         => null,
+        ]);
+
+        $this->mirrorAndNotify($member, 'approved');
+
+        return back()->with('success', 'Member approved.');
+    }
+
+    /**
+     * Adviser rejects a pending member of their own club.
+     */
+    public function reject(Request $request, ClubMember $member): RedirectResponse
+    {
+        $this->authorizeAdviser($member);
+
+        $validated = $request->validate([
+            'remarks' => ['required', 'string', 'min:5'],
+        ], [
+            'remarks.required' => 'Please provide a reason for rejection.',
+        ]);
+
+        $member->update([
+            'registration_status' => 'rejected',
+            'dsa_remarks'         => $validated['remarks'],
+            'approved_by'         => auth_user_id(),
+            'approved_at'         => null,
+        ]);
+
+        $this->mirrorAndNotify($member, 'rejected');
+
+        return back()->with('success', 'Member rejected.');
+    }
+
+    /**
+     * Only the adviser of the member's own club may approve/reject.
+     */
+    private function authorizeAdviser(ClubMember $member): void
+    {
+        abort_unless(
+            auth_role() === 'adviser' && $member->club && (int) $member->club->adviser_id === auth_user_id(),
+            403
+        );
+    }
+
+    private function mirrorAndNotify(ClubMember $member, string $decision): void
+    {
+        try {
+            $this->firebase->writeMemberStatus($member->club_id, $member->id, [
+                'registration_status' => $member->registration_status,
+                'decided_at'          => now()->toIso8601String(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Firebase member_status mirror failed for member #' . $member->id . ': ' . $e->getMessage());
+        }
+
+        NotifyClubOfMemberDecision::dispatch($member->id, $decision);
     }
 }

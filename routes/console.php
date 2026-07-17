@@ -12,3 +12,6 @@ Artisan::command('inspire', function () {
 
 Schedule::job(new SemesterPresenceReminderJob)->dailyAt('08:00');
 Schedule::job(new DetectClubViolationsJob)->dailyAt('08:00');
+
+// Prune transient data and alert admins when the database nears its cap.
+Schedule::command('retention:check')->dailyAt('02:00');

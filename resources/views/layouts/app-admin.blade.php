@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="cs-user-id" content="{{ auth_user_id() }}">
-    <meta name="theme-color" content="#1B5E20">
+    <meta name="theme-color" content="#208126">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ClubSync">
@@ -24,8 +24,9 @@
     {{-- ── Desktop fixed sidebar (md+) ───────────────────────────────────── --}}
     <aside class="hidden md:flex flex-col fixed inset-y-0 left-0 w-64 bg-[#1B5E20] z-30">
         <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-            <img src="/images/scc-crest.png" alt="SCC" class="h-8 w-8 object-contain flex-shrink-0"
-                 onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-8 h-8 rounded-lg bg-[#F9A825] flex items-center justify-center',innerHTML:'<span class=\'text-[#1B5E20] font-extrabold text-sm\'>CS</span>'}))">
+            <img src="/images/clubsync_logo.png" alt="ClubSync"
+                 class="w-14 h-14 object-contain flex-shrink-0"
+                 onerror="this.onerror=null;this.style.display='none'">
             <div>
                 <p class="text-[#F9A825] font-bold text-sm leading-tight">Admin Panel</p>
                 <p class="text-white/50 text-[11px]">System Administrator</p>
@@ -39,6 +40,14 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
                 </svg>
                 Dashboard
+            </a>
+            <a href="{{ route('admin.storage.index') }}"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                      {{ request()->routeIs('admin.storage*') ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z"/>
+                </svg>
+                Storage &amp; Retention
             </a>
             @if(auth_role() === 'dsa')
             <a href="{{ route('dsa.dashboard') }}"
@@ -83,6 +92,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
                     </svg>
                     Dashboard
+                </a>
+                <a href="{{ route('admin.storage.index') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white hover:bg-white/10 transition-colors text-sm font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7"/>
+                    </svg>
+                    Storage &amp; Retention
                 </a>
                 @if(auth_role() === 'dsa')
                 <a href="{{ route('dsa.dashboard') }}"

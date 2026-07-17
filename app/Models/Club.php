@@ -12,7 +12,7 @@ class Club extends Model
     protected $fillable = [
         'slug', 'acronym', 'adviser', 'club_type',
         'course_slug', 'department_slug', 'description',
-        'is_active', 'name', 'profile_photo_url',
+        'is_active', 'name', 'profile_photo_url', 'banner_image',
         'type', 'college_id', 'adviser_id',
     ];
 
@@ -38,6 +38,28 @@ class Club extends Model
     public function announcements(): HasMany
     {
         return $this->hasMany(Announcement::class);
+    }
+
+    public function chedReports(): HasMany
+    {
+        return $this->hasMany(ChedReport::class);
+    }
+
+    /** A club is "compliant" once it has at least one finalized (submitted) report. */
+    public function scopeCompliant($query)
+    {
+        return $query->whereHas('chedReports', fn ($q) => $q->where('is_finalized', true));
+    }
+
+    public function scopeNonCompliant($query)
+    {
+        return $query->whereDoesntHave('chedReports', fn ($q) => $q->where('is_finalized', true));
+    }
+
+    /** Clubs that have member registrations still awaiting the adviser's decision. */
+    public function scopePendingApplications($query)
+    {
+        return $query->whereHas('members', fn ($q) => $q->where('registration_status', 'pending'));
     }
 
     public function college(): BelongsTo
@@ -77,6 +99,13 @@ class Club extends Model
 
     public function getActiveMemberCountAttribute(): int
     {
+        // Prefer the value eager-loaded via withCount(... as active_member_count).
+        // Without this the accessor re-runs a COUNT for every club in a list (N+1),
+        // which is brutal against a distant database.
+        if (array_key_exists('active_member_count', $this->attributes)) {
+            return (int) $this->attributes['active_member_count'];
+        }
+
         return $this->members()->where('status', 'active')->count();
     }
 }

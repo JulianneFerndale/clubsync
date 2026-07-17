@@ -17,22 +17,42 @@ class ClubController extends Controller
     public function index(Request $request): View
     {
         $search = $request->query('search');
-        $type   = $request->query('type'); // 'academic' | 'non_academic' | null
+        $type   = $request->query('type');   // 'academic' | 'non_academic' | null
+        $status = $request->query('status'); // 'compliant' | 'non_compliant' | 'pending' | null
 
         $clubs = Club::query()
             ->when($type === 'academic',     fn ($q) => $q->academic())
             ->when($type === 'non_academic', fn ($q) => $q->nonAcademic())
+            ->when($status === 'compliant',     fn ($q) => $q->compliant())
+            ->when($status === 'non_compliant', fn ($q) => $q->nonCompliant())
+            ->when($status === 'pending',       fn ($q) => $q->pendingApplications())
             ->when($search, fn ($q) => $q->where(fn ($q) => $q
                 ->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($search).'%'])
                 ->orWhereRaw('LOWER(acronym) LIKE ?', ['%'.strtolower($search).'%'])
             ))
-            ->withCount(['members as active_member_count' => fn ($q) => $q->where('status', 'active')])
+            ->withCount([
+                'members as active_member_count'      => fn ($q) => $q->where('status', 'active'),
+                'members as pending_applications_count' => fn ($q) => $q->where('registration_status', 'pending'),
+                'chedReports as finalized_reports_count' => fn ($q) => $q->where('is_finalized', true),
+            ])
             ->with('adviserUser', 'college')
             ->orderBy('name')
             ->paginate(20)
             ->withQueryString();
 
-        return view('dsa.clubs.index', compact('clubs', 'search', 'type'));
+        // Sub-tab counts (respect the type filter so the tabs stay consistent).
+        $base = fn () => Club::query()
+            ->when($type === 'academic',     fn ($q) => $q->academic())
+            ->when($type === 'non_academic', fn ($q) => $q->nonAcademic());
+
+        $counts = [
+            'all'           => $base()->count(),
+            'compliant'     => $base()->compliant()->count(),
+            'non_compliant' => $base()->nonCompliant()->count(),
+            'pending'       => $base()->pendingApplications()->count(),
+        ];
+
+        return view('dsa.clubs.index', compact('clubs', 'search', 'type', 'status', 'counts'));
     }
 
     public function create(): View
@@ -120,6 +140,7 @@ class ClubController extends Controller
             'adviser_id'  => ['nullable', 'exists:users,id'],
             'description' => ['nullable', 'string'],
             'logo'        => ['nullable', 'image', 'max:2048'],
+            'banner'      => ['nullable', 'image', 'max:4096'],
             'is_active'   => ['boolean'],
         ]);
 
@@ -132,6 +153,13 @@ class ClubController extends Controller
             $validated['profile_photo_url'] = Storage::url($path);
         }
 
+        if ($request->hasFile('banner')) {
+            if ($club->banner_image && Str::startsWith($club->banner_image, '/storage/')) {
+                Storage::disk('public')->delete(Str::after($club->banner_image, '/storage/'));
+            }
+            $validated['banner_image'] = Storage::url($request->file('banner')->store('clubs/banners', 'public'));
+        }
+
         $club->update([
             'name'             => $validated['name'],
             'acronym'          => $validated['acronym'],
@@ -142,6 +170,7 @@ class ClubController extends Controller
             'description'      => $validated['description'] ?? null,
             'is_active'        => $request->boolean('is_active', true),
             'profile_photo_url' => $validated['profile_photo_url'] ?? $club->profile_photo_url,
+            'banner_image'      => $validated['banner_image'] ?? $club->banner_image,
         ]);
 
         return redirect()->route('dsa.clubs.show', $club)

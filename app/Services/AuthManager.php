@@ -187,6 +187,8 @@ class AuthManager
             'firebase_uid',
             'firebase_user_role',
             'firebase_user_id',
+            'firebase_is_admin',
+            'firebase_refresh_token',
         ]);
 
         cookie()->queue(cookie()->forget('clubsync_refresh'));

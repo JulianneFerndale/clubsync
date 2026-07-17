@@ -10,7 +10,7 @@ class SessionManager
     /**
      * Store Firebase auth data in the Laravel session.
      */
-    public function store(string $idToken, string $uid, string $role, int $userId, bool $isAdmin = false): void
+    public function store(string $idToken, string $uid, string $role, int $userId, bool $isAdmin = false, ?string $refreshToken = null): void
     {
         session([
             'firebase_id_token'  => $idToken,
@@ -19,6 +19,14 @@ class SessionManager
             'firebase_user_id'   => $userId,
             'firebase_is_admin'  => $isAdmin,
         ]);
+
+        // Persist the refresh token for the lifetime of the session so an active
+        // user's expired ID token (Firebase tokens last ~1 hour) can be silently
+        // refreshed instead of being forced to log out mid-task. "Remember Me"
+        // additionally stores it in a 30-day cookie for cross-session persistence.
+        if ($refreshToken !== null) {
+            session(['firebase_refresh_token' => $refreshToken]);
+        }
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\DSA;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\NotifyOfficersOfActivityDecision;
+use App\Jobs\SyncActivityToGoogleCalendar;
 use App\Models\Club;
 use App\Models\ClubActivity;
 use App\Models\Semester;
@@ -87,6 +88,7 @@ class ActivityController extends Controller
         ]);
 
         NotifyOfficersOfActivityDecision::dispatch($event->id, 'approved');
+        SyncActivityToGoogleCalendar::dispatch($event->id); // add to institutional Google Calendar
 
         return back()->with('success', 'Activity approved.');
     }
@@ -107,6 +109,7 @@ class ActivityController extends Controller
         ]);
 
         NotifyOfficersOfActivityDecision::dispatch($event->id, 'rejected');
+        SyncActivityToGoogleCalendar::dispatch($event->id); // removes it from the calendar if it was there
 
         return back()->with('success', 'Activity rejected.');
     }

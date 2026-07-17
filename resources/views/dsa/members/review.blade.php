@@ -6,7 +6,7 @@
 {{-- Page title bar --}}
 <div class="bg-[#1B5E20] px-5 py-4">
     <h1 class="text-white font-bold text-xl">{{ $club->name }}</h1>
-    <p class="text-white/60 text-xs mt-0.5">Member Registration Review</p>
+    <p class="text-white/60 text-xs mt-0.5">Member Registration (oversight — approved by the club adviser)</p>
 </div>
 
 <div class="px-4 py-5 space-y-5">
@@ -47,31 +47,9 @@
                     </div>
 
                     @if($member->registration_status === 'pending' && $member->submitted_by)
-                        <div class="flex items-center gap-2 mt-3">
-                            <form method="POST" action="{{ route('dsa.clubs.members.approve', [$club, $member]) }}">
-                                @csrf
-                                <button type="submit"
-                                        class="bg-[#1B5E20] text-white text-xs font-semibold rounded-lg px-3 py-1.5 hover:opacity-90 transition-opacity">
-                                    Approve
-                                </button>
-                            </form>
-                            <button type="button" onclick="document.getElementById('reject-form-{{ $member->id }}').classList.toggle('hidden')"
-                                    class="border border-red-300 text-red-500 text-xs font-semibold rounded-lg px-3 py-1.5 hover:bg-red-50 transition-colors">
-                                Reject
-                            </button>
-                        </div>
-
-                        <form id="reject-form-{{ $member->id }}" method="POST" action="{{ route('dsa.clubs.members.reject', [$club, $member]) }}" class="hidden mt-3 space-y-2">
-                            @csrf
-                            <textarea name="dsa_remarks" rows="2" required placeholder="Reason for rejection..."
-                                      class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B5E20]/30"></textarea>
-                            <button type="submit"
-                                    class="bg-red-500 text-white text-xs font-semibold rounded-lg px-3 py-1.5 hover:opacity-90 transition-opacity">
-                                Confirm Rejection
-                            </button>
-                        </form>
+                        <p class="text-xs text-gray-400 mt-2">Awaiting the club adviser's approval.</p>
                     @elseif($member->registration_status === 'rejected' && $member->dsa_remarks)
-                        <p class="text-xs text-red-500 mt-2">Remarks: {{ $member->dsa_remarks }}</p>
+                        <p class="text-xs text-red-500 mt-2">Adviser remarks: {{ $member->dsa_remarks }}</p>
                     @endif
                 </div>
             @endforeach

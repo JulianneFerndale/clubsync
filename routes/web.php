@@ -61,6 +61,12 @@ Route::middleware('firebase.token')->group(function () {
 // ─── Admin (is_admin flag, layered on top of any role) ───────────────────────
 Route::middleware(['firebase.token', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+
+    // Storage & data retention
+    Route::get('/storage',                              [\App\Http\Controllers\Admin\StorageController::class, 'index'])->name('storage.index');
+    Route::post('/storage/semesters/{semester}/archive', [\App\Http\Controllers\Admin\StorageController::class, 'archiveSemester'])->name('storage.archive');
+    Route::get('/storage/download',                     [\App\Http\Controllers\Admin\StorageController::class, 'download'])->name('storage.download');
+    Route::post('/storage/prune-audit',                 [\App\Http\Controllers\Admin\StorageController::class, 'pruneAudit'])->name('storage.prune-audit');
 });
 
 // ─── DSA ────────────────────────────────────────────────────────────────────
@@ -74,10 +80,8 @@ Route::middleware(['firebase.token', 'role:dsa'])->prefix('dsa')->name('dsa.')->
     Route::get('/clubs/{club}/edit', [\App\Http\Controllers\DSA\ClubController::class, 'edit'])->name('clubs.edit');
     Route::patch('/clubs/{club}',    [\App\Http\Controllers\DSA\ClubController::class, 'update'])->name('clubs.update');
 
-    // Member registration review
+    // Member registration oversight (read-only — approval belongs to the club adviser)
     Route::get('/clubs/{club}/members',                  [\App\Http\Controllers\DSA\ClubMemberController::class, 'index'])->name('clubs.members.index');
-    Route::post('/clubs/{club}/members/{member}/approve', [\App\Http\Controllers\DSA\ClubMemberController::class, 'approve'])->name('clubs.members.approve');
-    Route::post('/clubs/{club}/members/{member}/reject',  [\App\Http\Controllers\DSA\ClubMemberController::class, 'reject'])->name('clubs.members.reject');
 
     // Officer records (read-only)
     Route::get('/clubs/{club}/officers', [\App\Http\Controllers\DSA\ClubOfficerRecordController::class, 'index'])->name('clubs.officers.index');
@@ -106,6 +110,9 @@ Route::middleware(['firebase.token', 'role:dsa'])->prefix('dsa')->name('dsa.')->
 Route::middleware(['firebase.token', 'role:officer,adviser'])->prefix('clubs/members')->name('clubs.members.')->group(function () {
     Route::get('/',         [\App\Http\Controllers\ClubMemberController::class, 'index'])->name('index');
     Route::post('/submit',  [\App\Http\Controllers\ClubMemberController::class, 'store'])->name('store');
+    // Approval belongs to the club adviser (guarded in-controller)
+    Route::post('/{member}/approve', [\App\Http\Controllers\ClubMemberController::class, 'approve'])->name('approve');
+    Route::post('/{member}/reject',  [\App\Http\Controllers\ClubMemberController::class, 'reject'])->name('reject');
 });
 
 // ─── Semestral Member Presence (officer + adviser) ───────────────────────────
@@ -115,9 +122,12 @@ Route::middleware(['firebase.token', 'role:officer,adviser'])->prefix('clubs/pre
     Route::post('/notify-dsa',           [\App\Http\Controllers\MemberPresenceController::class, 'notifyDsa'])->name('notify');
 });
 
-// ─── Club Officer Records (officer + adviser) ────────────────────────────────
+// ─── Club Officer Records ────────────────────────────────────────────────────
+// Officers + adviser may VIEW the list; only the adviser may add/edit/archive.
 Route::middleware(['firebase.token', 'role:officer,adviser'])->prefix('clubs/officers')->name('clubs.officers.')->group(function () {
-    Route::get('/',                  [\App\Http\Controllers\ClubOfficerRecordController::class, 'index'])->name('index');
+    Route::get('/', [\App\Http\Controllers\ClubOfficerRecordController::class, 'index'])->name('index');
+});
+Route::middleware(['firebase.token', 'role:adviser'])->prefix('clubs/officers')->name('clubs.officers.')->group(function () {
     Route::get('/create',            [\App\Http\Controllers\ClubOfficerRecordController::class, 'create'])->name('create');
     Route::post('/',                 [\App\Http\Controllers\ClubOfficerRecordController::class, 'store'])->name('store');
     Route::get('/{record}/edit',     [\App\Http\Controllers\ClubOfficerRecordController::class, 'edit'])->name('edit');
@@ -153,6 +163,11 @@ Route::middleware(['firebase.token', 'role:adviser'])->prefix('adviser')->name('
 Route::middleware(['firebase.token', 'role:officer'])->prefix('officer')->name('officer.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Officer\DashboardController::class, 'index'])->name('dashboard');
 
+    // Officer's own enrolled clubs: browse/enroll in non-academic clubs, and view a club
+    Route::get('/clubs',              [\App\Http\Controllers\Officer\ClubController::class, 'index'])->name('clubs.index');
+    Route::get('/clubs/{club}',       [\App\Http\Controllers\Officer\ClubController::class, 'show'])->name('clubs.show');
+    Route::post('/clubs/{club}/join', [\App\Http\Controllers\Officer\ClubController::class, 'join'])->name('clubs.join');
+
     // Activities
     Route::get('/activities',              [\App\Http\Controllers\Officer\ActivityController::class, 'index'])->name('activities.index');
     Route::get('/activities/create',       [\App\Http\Controllers\Officer\ActivityController::class, 'create'])->name('activities.create');
@@ -178,6 +193,8 @@ Route::middleware(['firebase.token', 'role:officer'])->prefix('officer')->name('
     Route::get('/fees/create',                            [\App\Http\Controllers\Officer\FeeController::class, 'create'])->name('fees.create');
     Route::post('/fees',                                  [\App\Http\Controllers\Officer\FeeController::class, 'store'])->name('fees.store');
     Route::get('/fees/{fee}',                             [\App\Http\Controllers\Officer\FeeController::class, 'show'])->name('fees.show');
+    Route::get('/fees/{fee}/edit',                        [\App\Http\Controllers\Officer\FeeController::class, 'edit'])->name('fees.edit');
+    Route::patch('/fees/{fee}',                           [\App\Http\Controllers\Officer\FeeController::class, 'update'])->name('fees.update');
     Route::post('/fees/{fee}/members/{user}/paid',        [\App\Http\Controllers\Officer\FeeController::class, 'markPaid'])->name('fees.paid');
     Route::post('/fees/{fee}/members/{user}/unpaid',      [\App\Http\Controllers\Officer\FeeController::class, 'markUnpaid'])->name('fees.unpaid');
 });
@@ -217,7 +234,7 @@ Route::middleware(['firebase.token', 'role:officer'])->prefix('officer')->name('
     Route::post('/announcements/ai-draft',          [\App\Http\Controllers\Officer\AnnouncementController::class, 'aiDraft'])->name('announcements.ai-draft');
 });
 
-// ─── Churn Risk Engine (DSA + officers, never members) ───────────────────────
+// ─── Churn Risk Engine (DSA + officers, never members/advisers) ──────────────
 Route::middleware(['firebase.token', 'role:dsa,president,treasurer,mmo'])->group(function () {
-    Route::get('/churn-risk', fn () => abort(501))->name('churn-risk');
+    Route::get('/churn-risk', [\App\Http\Controllers\ChurnRiskController::class, 'index'])->name('churn-risk');
 });

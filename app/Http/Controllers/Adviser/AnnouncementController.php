@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Adviser;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\NotifyMembersOfAnnouncement;
 use App\Models\Announcement;
 use App\Models\Club;
 use Illuminate\Http\RedirectResponse;
@@ -68,8 +69,11 @@ class AnnouncementController extends Controller
             'published_at' => now(),
         ]);
 
+        // Notify members in-app + Gmail copy (POLICY: institutional email channel).
+        NotifyMembersOfAnnouncement::dispatch($announcement->id);
+
         return redirect()->route('adviser.announcements.index')
-            ->with('success', 'Announcement approved and published.');
+            ->with('success', 'Announcement approved and published. Members will be notified in-app and by email.');
     }
 
     public function requestRevision(Request $request, Announcement $announcement): RedirectResponse

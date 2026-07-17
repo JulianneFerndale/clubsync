@@ -33,7 +33,67 @@
         <p class="text-sm text-gray-400 text-center py-8">You are not associated with any club.</p>
     @elseif($members->isEmpty())
         <p class="text-sm text-gray-400 text-center py-8">No members yet. Students who join this club will appear here.</p>
+    @elseif(auth_role() === 'adviser')
+        {{-- Adviser: approve / reject members submitted by officers --}}
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
+            @foreach($members as $member)
+                <div class="px-4 py-3.5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-[#1B5E20]/10 flex items-center justify-center flex-shrink-0">
+                            <span class="text-[#1B5E20] text-xs font-bold">
+                                {{ strtoupper(substr($member->user?->first_name ?? 'U', 0, 1) . substr($member->user?->last_name ?? '', 0, 1)) }}
+                            </span>
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-800 truncate">{{ $member->user?->name ?? 'Unknown user' }}</p>
+                            <p class="text-xs text-gray-400 truncate">
+                                {{ $member->user?->email ?? '' }}
+                                @if($member->submittedBy)
+                                    · submitted by {{ $member->submittedBy->name }}
+                                @endif
+                            </p>
+                            @if($member->registration_status === 'rejected' && $member->dsa_remarks)
+                                <p class="text-xs text-red-500 mt-1">Adviser remarks: {{ $member->dsa_remarks }}</p>
+                            @endif
+                        </div>
+
+                        <x-status-badge :status="$member->registration_status" />
+                    </div>
+
+                    @if($member->registration_status === 'pending')
+                        <div class="flex items-center gap-2 mt-3 pl-12">
+                            <form method="POST" action="{{ route('clubs.members.approve', $member) }}"
+                                  data-loading="dialog" data-loading-message="Approving member">
+                                @csrf
+                                <button type="submit"
+                                        class="bg-[#1B5E20] text-[#F9A825] text-xs font-semibold rounded-lg px-4 py-2 hover:opacity-90 transition-opacity">
+                                    Approve
+                                </button>
+                            </form>
+                            <button type="button" onclick="document.getElementById('reject-{{ $member->id }}').classList.toggle('hidden')"
+                                    class="border border-red-200 text-red-600 text-xs font-semibold rounded-lg px-4 py-2 hover:bg-red-50 transition-colors">
+                                Reject
+                            </button>
+                        </div>
+                        <form method="POST" action="{{ route('clubs.members.reject', $member) }}"
+                              id="reject-{{ $member->id }}" class="hidden mt-2 pl-12"
+                              data-loading="dialog" data-loading-message="Rejecting member">
+                            @csrf
+                            <textarea name="remarks" rows="2" required minlength="5"
+                                      placeholder="Reason for rejection (shared with the club)…"
+                                      class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-[#1B5E20] focus:border-[#1B5E20]"></textarea>
+                            <button type="submit"
+                                    class="mt-2 bg-red-600 text-white text-xs font-semibold rounded-lg px-4 py-2 hover:bg-red-700 transition-colors">
+                                Confirm rejection
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            @endforeach
+        </div>
     @else
+        {{-- Officer: select members and submit them to the club adviser for approval --}}
         <form method="POST" action="{{ route('clubs.members.store') }}"
               data-loading="dialog" data-loading-message="Submitting member registration">
             @csrf
@@ -63,7 +123,7 @@
                                 @endif
                             </p>
                             @if($member->registration_status === 'rejected' && $member->dsa_remarks)
-                                <p class="text-xs text-red-500 mt-1">DSA remarks: {{ $member->dsa_remarks }}</p>
+                                <p class="text-xs text-red-500 mt-1">Adviser remarks: {{ $member->dsa_remarks }}</p>
                             @endif
                         </div>
 
@@ -74,7 +134,7 @@
 
             <button type="submit"
                     class="mt-4 w-full bg-[#1B5E20] text-[#F9A825] font-semibold text-sm rounded-xl py-3.5 hover:opacity-90 transition-opacity">
-                Submit Selected to DSA
+                Submit Selected to Adviser
             </button>
         </form>
     @endif

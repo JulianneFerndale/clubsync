@@ -45,35 +45,42 @@
 
 <script>
 (function () {
-    const root = document.getElementById('cs-loading');
-    if (!root || root.dataset.csReady) return;
-    root.dataset.csReady = '1';
+    // Global listeners attach once. The overlay markup is re-rendered on every
+    // Turbo navigation, so look the element up fresh at call time — a cached
+    // reference would point at a detached node after Turbo swaps the <body>.
+    if (window.__csLoadingInit) return;
+    window.__csLoadingInit = true;
 
-    const layers = {
-        nav:    root.querySelector('[data-cs-layer="nav"]'),
-        splash: root.querySelector('[data-cs-layer="splash"]'),
-        dialog: root.querySelector('[data-cs-layer="dialog"]'),
-    };
+    const el = () => document.getElementById('cs-loading');
 
-    let active = null;        // current mode, or null when hidden
-    let pendingForm = null;   // the form whose submit triggered the overlay
+    let active = null;
+    let pendingForm = null;
     let navTimer = null;
+    let safety = null;
 
     function show(mode, message) {
-        if (!layers[mode]) return;
+        const root = el();
+        if (!root) return;
         active = mode;
-        Object.keys(layers).forEach((k) => layers[k].classList.toggle('hidden', k !== mode));
+        ['nav', 'splash', 'dialog'].forEach((k) => {
+            const layer = root.querySelector('[data-cs-layer="' + k + '"]');
+            if (layer) layer.classList.toggle('hidden', k !== mode);
+        });
         if (message) {
-            root.querySelectorAll('[data-cs-message]').forEach((el) => { el.textContent = message; });
+            root.querySelectorAll('[data-cs-message]').forEach((m) => { m.textContent = message; });
         }
         root.classList.remove('hidden');
+        // Failsafe: never let the overlay stick if no completion event arrives.
+        clearTimeout(safety);
+        safety = setTimeout(hide, 25000);
     }
 
     function hide() {
         active = null;
         clearTimeout(navTimer);
-        root.classList.add('hidden');
-        // Re-enable any submit buttons we disabled, and clear the submitting guard.
+        clearTimeout(safety);
+        const root = el();
+        if (root) root.classList.add('hidden');
         if (pendingForm) {
             delete pendingForm.dataset.csSubmitting;
             pendingForm = null;
@@ -84,24 +91,14 @@
         });
     }
 
-    // Public API in case a page needs to drive it manually.
     window.ClubSyncLoading = { show, hide };
 
-    // ── Stop: cancel the in-flight request and restore the UI ──────────────
-    const stopBtn = document.getElementById('cs-loading-stop');
-    if (stopBtn) {
-        stopBtn.addEventListener('click', function () {
-            try { window.stop(); } catch (e) {}
-            hide();
-        });
-    }
-
-    // ── Forms that opt in via data-loading ─────────────────────────────────
+    // Forms that opt in via data-loading
     document.addEventListener('submit', function (e) {
         const form = e.target;
         if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-loading')) return;
-        if (form.dataset.csSubmitting) return;                 // guard double-submit
-        if (typeof form.checkValidity === 'function' && !form.checkValidity()) return; // let native validation show first
+        if (form.dataset.csSubmitting) return;
+        if (typeof form.checkValidity === 'function' && !form.checkValidity()) return;
 
         const mode = form.getAttribute('data-loading') === 'splash' ? 'splash' : 'dialog';
         const msg  = form.getAttribute('data-loading-message') || (mode === 'splash' ? 'Please wait…' : 'Processing…');
@@ -115,25 +112,33 @@
         show(mode, msg);
     }, true);
 
-    // ── Lightweight spinner while navigating between pages/layouts ─────────
+    // Stop button (delegated — it is re-created on every navigation) + nav spinner
     document.addEventListener('click', function (e) {
+        if (!e.target.closest) return;
+
+        if (e.target.closest('#cs-loading-stop')) {
+            try { window.stop(); } catch (_) {}
+            hide();
+            return;
+        }
+
         if (active) return;
-        const a = e.target.closest && e.target.closest('a[href]');
-        if (!a) return;
-        if (a.target === '_blank' || a.hasAttribute('download') || a.hasAttribute('data-no-loading')) return;
+        const a = e.target.closest('a[href]');
+        if (!a || a.target === '_blank' || a.hasAttribute('download') || a.hasAttribute('data-no-loading')) return;
 
         let url;
         try { url = new URL(a.href, window.location.href); } catch (_) { return; }
-        if (url.origin !== window.location.origin) return;                 // external link
-        if (url.href === window.location.href || url.hash && url.pathname === window.location.pathname) return; // same page / anchor
+        if (url.origin !== window.location.origin) return;
+        if (url.href === window.location.href || (url.hash && url.pathname === window.location.pathname)) return;
 
-        // Debounce: only reveal if the next page takes a moment to load, avoiding a flash on fast navigations.
         navTimer = setTimeout(function () { show('nav'); }, 180);
     });
 
-    // ── Cleanup ────────────────────────────────────────────────────────────
-    // When restored from the back/forward (bfcache) the overlay must not linger.
+    // Hide once the destination is shown — full reload, bfcache restore, or Turbo render.
     window.addEventListener('pageshow', function (ev) { if (ev.persisted) hide(); });
     window.addEventListener('pagehide', function () { clearTimeout(navTimer); });
+    ['turbo:load', 'turbo:render', 'turbo:before-cache'].forEach(function (evt) {
+        document.addEventListener(evt, hide);
+    });
 })();
 </script>

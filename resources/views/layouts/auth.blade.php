@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#1B5E20">
+    <meta name="theme-color" content="#208126">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="ClubSync">
     <link rel="manifest" href="/manifest.json">
@@ -22,9 +22,9 @@
 
         {{-- Logo --}}
         <div class="flex items-center gap-3 mb-auto">
-            <div class="w-10 h-10 rounded-xl bg-[#F9A825] flex items-center justify-center flex-shrink-0 shadow-lg">
-                <span class="text-[#1B5E20] font-extrabold text-base">CS</span>
-            </div>
+            <img src="/images/clubsync_logo.png" alt="ClubSync"
+                 class="w-14 h-14 object-contain flex-shrink-0"
+                 onerror="this.onerror=null;this.style.display='none'">
             <div>
                 <p class="text-white font-bold text-base leading-tight">ClubSync</p>
                 <p class="text-white/50 text-xs">Saint Columban College</p>

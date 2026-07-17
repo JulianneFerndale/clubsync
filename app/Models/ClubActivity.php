@@ -14,7 +14,7 @@ class ClubActivity extends Model
         'venue', 'purpose', 'expected_participants', 'status', 'completed_at', 'event_type',
         'created_by', 'post_report_content', 'post_report_status',
         'activity_type', 'approval_status', 'dsa_remarks', 'approval_letter_path',
-        'approved_at', 'approved_by',
+        'approved_at', 'approved_by', 'google_event_id',
     ];
 
     protected $casts = [

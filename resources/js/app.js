@@ -1,12 +1,38 @@
+import '@hotwired/turbo'; // SPA-style navigation (no full page reloads); auto-starts
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 // ── PWA service worker ──────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
+        navigator.serviceWorker.register('/sw.js')
+            .then((reg) => reg.update())
+            .catch(() => {});
+    });
+
+    // When a new worker takes control (e.g. after an asset rebuild), reload once
+    // so the page uses the fresh worker + assets. This self-heals the "unstyled
+    // page from a stale cache" problem instead of requiring a manual cache clear.
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloading) return;
+        reloading = true;
+        window.location.reload();
     });
 }
+
+// ── Turbo: let the browser handle file downloads natively ───────────────────
+// Turbo would otherwise try to "render" an attachment response. Any link to a
+// download route (…/download, …/letter, …/pdf, …/xlsx) is taken over the wire.
+document.addEventListener('turbo:click', (event) => {
+    const url = event.detail?.url ?? event.target?.href ?? '';
+    let path;
+    try { path = new URL(url, window.location.href).pathname; } catch { return; }
+    if (/\/(download|letter|pdf|xlsx)(?:[/?]|$)/i.test(path)) {
+        event.preventDefault();
+        window.location.href = url; // native request → browser downloads the file
+    }
+});
 
 // ── Real-time notifications via Laravel Reverb ──────────────────────────────
 window.Pusher = Pusher;
@@ -33,10 +59,17 @@ if (reverbKey) {
     document.addEventListener('DOMContentLoaded', subscribeToNotifications);
 }
 
+let notificationsSubscribed = false;
+
 function subscribeToNotifications() {
+    // Echo + the WebSocket persist across Turbo navigations, so subscribe once.
+    if (notificationsSubscribed) return;
+
     const meta = document.querySelector('meta[name="cs-user-id"]');
     const userId = meta && meta.content ? parseInt(meta.content, 10) : 0;
     if (!userId || !window.Echo) return;
+
+    notificationsSubscribed = true;
 
     window.Echo.private(`notifications.${userId}`)
         .listen('.notification.created', (e) => {

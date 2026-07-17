@@ -47,24 +47,26 @@
                     @if(! $record->is_active)
                         <x-status-badge status="inactive" />
                     @endif
-                    <a href="{{ route('clubs.officers.edit', $record) }}" class="text-xs text-[#1B5E20] font-semibold px-2 py-1 hover:underline">
-                        Edit
-                    </a>
-                    @if($record->is_active)
-                        <form method="POST" action="{{ route('clubs.officers.archive', $record) }}"
-                              onsubmit="return confirm('Archive {{ addslashes($record->full_name) }}\'s officer record?')">
-                            @csrf
-                            <button type="submit" class="text-xs text-red-500 font-semibold px-2 py-1 hover:underline">
-                                Archive
-                            </button>
-                        </form>
+                    @if(auth_role() === 'adviser')
+                        <a href="{{ route('clubs.officers.edit', $record) }}" class="text-xs text-[#1B5E20] font-semibold px-2 py-1 hover:underline">
+                            Edit
+                        </a>
+                        @if($record->is_active)
+                            <form method="POST" action="{{ route('clubs.officers.archive', $record) }}"
+                                  onsubmit="return confirm('Archive {{ addslashes($record->full_name) }}\'s officer record?')">
+                                @csrf
+                                <button type="submit" class="text-xs text-red-500 font-semibold px-2 py-1 hover:underline">
+                                    Archive
+                                </button>
+                            </form>
+                        @endif
                     @endif
                 </div>
             @endforeach
         </div>
     @endif
 
-    @if($club)
+    @if($club && auth_role() === 'adviser')
         <a href="{{ route('clubs.officers.create') }}"
            class="flex items-center justify-between w-full border-2 border-[#1B5E20] rounded-xl px-4 py-3.5 text-[#1B5E20] font-semibold text-sm hover:bg-[#1B5E20]/5 transition-colors">
             Add officer record
@@ -72,6 +74,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
             </svg>
         </a>
+    @elseif($club)
+        <p class="text-xs text-gray-400 text-center">Officer records are maintained by the club adviser.</p>
     @endif
 
 </div>

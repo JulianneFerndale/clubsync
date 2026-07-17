@@ -7,6 +7,47 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## ClubSync — Data Retention & Storage
+
+ClubSync runs on a Supabase Postgres database (free tier ≈ 500 MB). A daily
+`retention:check` command keeps the database from filling up:
+
+- **Auto-prunes only transient rows** — expired sessions and *read* notifications
+  older than `RETENTION_READ_NOTIF_DAYS`. Student, financial, activity, and audit
+  data are never deleted automatically.
+- **Alerts admins** when usage crosses `RETENTION_WARN_PERCENT` / `RETENTION_CRITICAL_PERCENT`,
+  linking them to **Admin → Storage & Retention**.
+- On that page an admin can **archive an old semester**: its attendance and fee
+  payments are exported to a downloadable Excel file, then removed from the database.
+  The current and previous semester are always kept; audit logs are retained for at
+  least one academic year (per `POLICY.md`).
+
+### Settings (`.env`)
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `DB_CAP_MB` | `500` | Database size cap to measure against (raise if you upgrade the plan) |
+| `RETENTION_WARN_PERCENT` | `75` | Usage % that triggers an admin alert |
+| `RETENTION_CRITICAL_PERCENT` | `90` | Usage % for a critical alert |
+| `RETENTION_SESSION_DAYS` | `7` | Age (days) after which expired sessions are pruned |
+| `RETENTION_READ_NOTIF_DAYS` | `90` | Age (days) after which read notifications are pruned |
+| `RETENTION_AUDIT_DAYS` | `365` | Audit-log retention (floored at 365 per policy) |
+
+### Required cron (production)
+
+The daily prune + alert relies on Laravel's scheduler, so add **one** cron entry on the server:
+
+```cron
+* * * * * cd /path/to/clubsyncing && php artisan schedule:run >> /dev/null 2>&1
+```
+
+On Windows, create a Task Scheduler task that runs `php artisan schedule:run` every minute.
+You can also run the check on demand at any time:
+
+```bash
+php artisan retention:check
+```
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

@@ -17,6 +17,15 @@
         </div>
     @endif
 
+    {{-- Create new club (top action) --}}
+    <a href="{{ route('dsa.clubs.create') }}"
+       class="flex items-center justify-between w-full bg-[#1B5E20] text-[#F9A825] rounded-xl px-4 py-3.5 font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm">
+        Create a new club
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+        </svg>
+    </a>
+
     {{-- Overview cards --}}
     <div class="grid grid-cols-2 gap-3">
         <div class="bg-[#1B5E20] rounded-xl p-4 shadow-sm">
@@ -142,14 +151,6 @@
         @endforelse
     </div>
 
-    {{-- Create new club button --}}
-    <a href="{{ route('dsa.clubs.create') }}"
-       class="flex items-center justify-between w-full border-2 border-[#1B5E20] rounded-xl px-4 py-3.5 text-[#1B5E20] font-semibold text-sm hover:bg-[#1B5E20]/5 transition-colors">
-        Create a new club
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
-        </svg>
-    </a>
 
 </div>
 @endsection

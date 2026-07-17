@@ -6,7 +6,7 @@
 
 {{-- Header --}}
 <div class="bg-[#1B5E20] px-5 pt-5 pb-6">
-    <h1 class="text-white font-bold text-xl">Fee Management</h1>
+    <h1 class="text-white font-bold text-xl">Fee Collection</h1>
     <p class="text-white/60 text-xs mt-1">{{ $club?->name ?? 'No club assigned' }}</p>
 </div>
 
@@ -34,28 +34,30 @@
     @else
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
             @foreach($fees as $fee)
-                <a href="{{ route('officer.fees.show', $fee) }}"
-                   class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-gray-800 truncate">{{ $fee->title }}</p>
-                        <p class="text-xs text-gray-400 mt-0.5">
-                            {{ $fee->academic_period }} · Due {{ $fee->due_date->format('M j, Y') }}
-                        </p>
-                        <div class="flex items-center gap-2 mt-1.5">
-                            <div class="h-1.5 rounded-full bg-gray-100 flex-1 max-w-[100px] overflow-hidden">
-                                @php $pct = $fee->total_count > 0 ? ($fee->paid_count / $fee->total_count) * 100 : 0; @endphp
-                                <div class="h-full bg-[#1B5E20] rounded-full" style="width: {{ $pct }}%"></div>
+                <div class="flex items-center px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                    <a href="{{ route('officer.fees.show', $fee) }}" class="flex items-center justify-between flex-1 min-w-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-800 truncate">{{ $fee->title }}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">
+                                {{ $fee->academic_period }} · Due {{ $fee->due_date->format('M j, Y') }}
+                            </p>
+                            <div class="flex items-center gap-2 mt-1.5">
+                                <div class="h-1.5 rounded-full bg-gray-100 flex-1 max-w-[100px] overflow-hidden">
+                                    @php $pct = $fee->total_count > 0 ? ($fee->paid_count / $fee->total_count) * 100 : 0; @endphp
+                                    <div class="h-full bg-[#1B5E20] rounded-full" style="width: {{ $pct }}%"></div>
+                                </div>
+                                <span class="text-[10px] text-gray-400">{{ $fee->paid_count }}/{{ $fee->total_count }} paid</span>
                             </div>
-                            <span class="text-[10px] text-gray-400">{{ $fee->paid_count }}/{{ $fee->total_count }} paid</span>
                         </div>
-                    </div>
-                    <div class="flex-shrink-0 ml-3 text-right">
-                        <p class="text-sm font-bold text-gray-800">₱{{ number_format($fee->amount, 2) }}</p>
-                        <svg class="w-4 h-4 text-gray-400 ml-auto mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                        <p class="text-sm font-bold text-gray-800 flex-shrink-0 ml-3">₱{{ number_format($fee->amount, 2) }}</p>
+                    </a>
+                    <a href="{{ route('officer.fees.edit', $fee) }}"
+                       class="ml-2 p-2 rounded-lg text-gray-400 hover:text-[#1B5E20] hover:bg-[#1B5E20]/5 flex-shrink-0" title="Edit fee">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
                         </svg>
-                    </div>
-                </a>
+                    </a>
+                </div>
             @endforeach
         </div>
     @endif

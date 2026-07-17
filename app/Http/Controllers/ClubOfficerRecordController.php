@@ -47,8 +47,16 @@ class ClubOfficerRecordController extends Controller
         return view('clubs.officers.index', compact('club', 'records'));
     }
 
+    /** Only the club adviser may add/edit/archive officer records. */
+    private function requireAdviser(): void
+    {
+        abort_unless(auth_role() === 'adviser', 403);
+    }
+
     public function create(): View
     {
+        $this->requireAdviser();
+
         $club = $this->currentClub();
 
         return view('clubs.officers.create', compact('club'));
@@ -56,6 +64,8 @@ class ClubOfficerRecordController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->requireAdviser();
+
         $club = $this->currentClub();
 
         if (! $club) {
@@ -73,6 +83,8 @@ class ClubOfficerRecordController extends Controller
 
     public function edit(ClubOfficerRecord $record): View
     {
+        $this->requireAdviser();
+
         $club = $this->currentClub();
 
         if (! $club || $record->club_id !== $club->id) {
@@ -84,6 +96,8 @@ class ClubOfficerRecordController extends Controller
 
     public function update(Request $request, ClubOfficerRecord $record): RedirectResponse
     {
+        $this->requireAdviser();
+
         $club = $this->currentClub();
 
         if (! $club || $record->club_id !== $club->id) {
@@ -99,6 +113,8 @@ class ClubOfficerRecordController extends Controller
 
     public function archive(ClubOfficerRecord $record): RedirectResponse
     {
+        $this->requireAdviser();
+
         $club = $this->currentClub();
 
         if (! $club || $record->club_id !== $club->id) {

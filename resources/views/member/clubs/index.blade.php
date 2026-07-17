@@ -1,17 +1,16 @@
 @extends('layouts.app-member')
-@section('title', 'Browse Clubs — ClubSync')
-@section('page-title', 'Browse Clubs')
+@section('title', 'Browse Non-Academic Clubs — ClubSync')
+@section('page-title', 'Browse Non-Academic Clubs')
 
 @section('content')
 
 {{-- Header --}}
 <div class="bg-[#1B5E20] px-5 pt-12 pb-5">
-    <h1 class="text-white font-bold text-xl">Browse Clubs</h1>
-    <p class="text-white/60 text-xs mt-1">Discover and join clubs at Saint Columban College</p>
+    <h1 class="text-white font-bold text-xl">Browse Non-Academic Clubs</h1>
+    <p class="text-white/60 text-xs mt-1">Open to all students — tap a club to view details and join</p>
 
     {{-- Search --}}
     <form method="GET" action="{{ route('member.clubs.index') }}" class="mt-4">
-        <input type="hidden" name="type" value="{{ $type }}">
         <div class="relative">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
@@ -21,25 +20,6 @@
                    class="w-full bg-white/15 text-white placeholder-white/50 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:bg-white/25 transition">
         </div>
     </form>
-</div>
-
-{{-- Type filter tabs --}}
-<div class="flex bg-white border-b border-gray-100 sticky top-0 z-10">
-    <a href="{{ route('member.clubs.index', ['q' => $search, 'type' => '']) }}"
-       class="flex-1 py-3 text-sm font-semibold text-center transition-colors
-              {{ !$type ? 'text-[#1B5E20] border-b-2 border-[#F9A825]' : 'text-gray-400' }}">
-        All
-    </a>
-    <a href="{{ route('member.clubs.index', ['q' => $search, 'type' => 'academic']) }}"
-       class="flex-1 py-3 text-sm font-semibold text-center transition-colors
-              {{ $type === 'academic' ? 'text-[#1B5E20] border-b-2 border-[#F9A825]' : 'text-gray-400' }}">
-        Academic
-    </a>
-    <a href="{{ route('member.clubs.index', ['q' => $search, 'type' => 'non_academic']) }}"
-       class="flex-1 py-3 text-sm font-semibold text-center transition-colors
-              {{ $type === 'non_academic' ? 'text-[#1B5E20] border-b-2 border-[#F9A825]' : 'text-gray-400' }}">
-        Non-Academic
-    </a>
 </div>
 
 <div class="px-4 py-5">
@@ -58,11 +38,12 @@
             @endif
         </div>
     @else
-        <div class="grid grid-cols-3 gap-2.5 md:grid-cols-4 lg:grid-cols-6">
+        {{-- overflow-x-clip keeps edge-card hover cards from creating a horizontal scrollbar --}}
+        <div class="grid grid-cols-3 gap-2.5 md:grid-cols-4 lg:grid-cols-6 overflow-x-clip">
             @foreach($clubs as $club)
                 @php $status = $joinedIds->get($club->id); @endphp
                 <a href="{{ route('member.clubs.show', $club) }}"
-                   class="flex flex-col items-center gap-2 p-3 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative">
+                   class="group relative flex flex-col items-center gap-2 p-3 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
 
                     {{-- Membership badge --}}
                     @if($status === 'active')
@@ -74,7 +55,8 @@
                     @if($club->profile_photo_url)
                         <img src="{{ $club->profile_photo_url }}"
                              alt="{{ $club->acronym ?? $club->name }}"
-                             class="w-14 h-14 rounded-full object-cover border-2 border-[#1B5E20]/20">
+                             class="w-14 h-14 rounded-full object-cover border-2 border-[#1B5E20]/20"
+                             onerror="this.onerror=null;this.outerHTML='<div class=\'w-14 h-14 rounded-full bg-[#1B5E20] flex items-center justify-center\'><span class=\'text-white font-bold text-sm\'>{{ strtoupper(substr($club->acronym ?? $club->name, 0, 2)) }}</span></div>'">
                     @else
                         <div class="w-14 h-14 rounded-full bg-[#1B5E20] flex items-center justify-center">
                             <span class="text-white font-bold text-sm">
@@ -86,6 +68,30 @@
                     <span class="text-[10px] font-semibold text-gray-700 text-center leading-tight line-clamp-2">
                         {{ $club->acronym ?? $club->name }}
                     </span>
+
+                    {{-- Hover detail (desktop only — touch devices tap through to the full club page) --}}
+                    <div class="pointer-events-none hidden md:block absolute left-1/2 -translate-x-1/2 top-full mt-2 z-30 w-52
+                                opacity-0 invisible group-hover:opacity-100 group-hover:visible transition
+                                bg-white rounded-xl shadow-2xl border border-gray-200 p-3 text-left">
+                        <div class="flex items-center gap-2.5">
+                            @if($club->profile_photo_url)
+                                <img src="{{ $club->profile_photo_url }}" alt=""
+                                     class="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                                     onerror="this.style.display='none'">
+                            @else
+                                <div class="w-9 h-9 rounded-full bg-[#1B5E20] flex items-center justify-center flex-shrink-0">
+                                    <span class="text-white font-bold text-[10px]">{{ strtoupper(substr($club->acronym ?? $club->name, 0, 2)) }}</span>
+                                </div>
+                            @endif
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-gray-800 leading-tight">{{ $club->name }}</p>
+                                <p class="text-[10px] text-[#1B5E20] font-semibold">{{ $club->acronym }}</p>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-gray-500 leading-snug mt-2 line-clamp-4">
+                            {{ $club->description ?: 'No description provided.' }}
+                        </p>
+                    </div>
                 </a>
             @endforeach
         </div>

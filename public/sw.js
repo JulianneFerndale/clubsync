@@ -1,4 +1,4 @@
-const CACHE_NAME = 'clubsync-v2';
+const CACHE_NAME = 'clubsync-v3';
 const OFFLINE_URL = '/offline';
 
 // Assets to pre-cache on install so the offline fallback is always available.
@@ -6,7 +6,9 @@ const PRECACHE_ASSETS = ['/', OFFLINE_URL];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS))
+        // Don't let a single failed precache (e.g. '/' returning a redirect/404)
+        // abort the whole install.
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS).catch(() => {}))
     );
     self.skipWaiting();
 });
@@ -35,6 +37,25 @@ self.addEventListener('fetch', (event) => {
     // Never cache the connectivity probe — a stale cached 204 would make the
     // app think it is online while offline. Let it hit the network directly.
     if (url.pathname === '/ping') return;
+
+    // Built assets are content-hashed (immutable): serve cache-first so a slow or
+    // dropped network request can never leave a page unstyled, and a new build
+    // (new hash = new URL) is always fetched fresh. This is the fix for pages
+    // occasionally rendering as unstyled HTML.
+    if (url.pathname.startsWith('/build/')) {
+        event.respondWith(
+            caches.match(event.request).then((cached) =>
+                cached || fetch(event.request).then((response) => {
+                    if (response.ok) {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+                    }
+                    return response;
+                })
+            )
+        );
+        return;
+    }
 
     const isNavigation =
         event.request.mode === 'navigate' ||

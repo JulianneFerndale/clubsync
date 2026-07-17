@@ -4,7 +4,8 @@
     @if($club->profile_photo_url)
         <img src="{{ $club->profile_photo_url }}"
              alt="{{ $club->acronym ?? $club->name }}"
-             class="w-14 h-14 rounded-full object-cover border-2 border-[#1B5E20]/20">
+             class="w-14 h-14 rounded-full object-cover border-2 border-[#1B5E20]/20"
+             onerror="this.onerror=null;this.outerHTML='<div class=\'w-14 h-14 rounded-full bg-[#1B5E20] flex items-center justify-center\'><span class=\'text-white font-bold text-sm\'>{{ strtoupper(substr($club->acronym ?? $club->name, 0, 2)) }}</span></div>'">
     @else
         <div class="w-14 h-14 rounded-full bg-[#1B5E20] flex items-center justify-center">
             <span class="text-white font-bold text-sm">

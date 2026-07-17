@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="cs-user-id" content="{{ auth_user_id() }}">
-    <meta name="theme-color" content="#1B5E20">
+    <meta name="theme-color" content="#208126">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ClubSync">
@@ -23,9 +23,9 @@
     {{-- ── Desktop fixed sidebar (md+) ───────────────────────────────────── --}}
     <aside class="hidden md:flex flex-col fixed inset-y-0 left-0 w-64 bg-[#1B5E20] z-30">
         <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-            <div class="w-8 h-8 rounded-lg bg-[#F9A825] flex items-center justify-center flex-shrink-0">
-                <span class="text-[#1B5E20] font-extrabold text-sm">CS</span>
-            </div>
+            <img src="/images/clubsync_logo.png" alt="ClubSync"
+                 class="w-14 h-14 object-contain flex-shrink-0"
+                 onerror="this.onerror=null;this.style.display='none'">
             <div>
                 <p class="text-white font-bold text-sm leading-tight">@yield('club-name', 'ClubSync')</p>
                 <p class="text-white/50 text-[11px]">Officer Panel</p>
@@ -94,7 +94,7 @@
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75"/>
                 </svg>
-                Fee Management
+                Fee Collection
             </a>
             @if(auth_role() !== 'member')
             <a href="{{ route('churn-risk') }}"
@@ -180,7 +180,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75"/>
                     </svg>
-                    Fee Management
+                    Fee Collection
                 </a>
                 @if(auth_role() !== 'member')
                 <a href="{{ route('churn-risk') }}"

@@ -101,6 +101,16 @@ return [
             // from hanging when the database/internet is unreachable. Honoured by
             // App\Database\ResilientPostgresConnector.
             'connect_timeout' => env('DB_CONNECT_TIMEOUT', 5),
+            // Reuse the connection across requests in each PHP-FPM worker, so the
+            // ~2.5s TLS + pooler-auth handshake to a distant Supabase instance is
+            // paid once per worker instead of on every request.
+            // NOTE for high-concurrency production: each worker then holds a
+            // session-pooler slot. If you approach the connection limit, set
+            // DB_PERSISTENT=false and point runtime traffic at Supabase's
+            // transaction pooler (port 6543) instead.
+            'options' => extension_loaded('pdo_pgsql') && env('DB_PERSISTENT', true) ? [
+                PDO::ATTR_PERSISTENT => true,
+            ] : [],
         ],
 
         'sqlsrv' => [

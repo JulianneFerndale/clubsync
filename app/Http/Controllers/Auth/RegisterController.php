@@ -13,6 +13,7 @@ use App\Services\SessionManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -37,6 +38,7 @@ class RegisterController extends Controller
             'email'         => ['required', 'email', 'ends_with:sccpag.edu.ph', 'unique:users,email'],
             'password'      => ['required', 'confirmed', Password::min(8)],
             'mobile_number' => ['required', 'string', 'max:20'],
+            'photo'         => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'terms'         => ['accepted'],
         ], [
             'email.ends_with'  => 'Only Saint Columban College institutional emails (@sccpag.edu.ph) are accepted.',
@@ -52,6 +54,12 @@ class RegisterController extends Controller
             'register.password'      => $validated['password'],
             'register.mobile_number' => $validated['mobile_number'],
         ]);
+
+        // Store the optional profile photo now and carry its URL through the
+        // remaining steps (a file can't live in the session).
+        if ($request->hasFile('photo')) {
+            session(['register.photo_url' => Storage::url($request->file('photo')->store('profile-photos', 'public'))]);
+        }
 
         return redirect()->route('register.department');
     }
@@ -125,6 +133,7 @@ class RegisterController extends Controller
             'course_id'     => $request->course_id,
             'firebase_uid'  => $firebaseData['localId'],
             'role'          => 'member',
+            'profile_photo_url' => session('register.photo_url'),
         ]);
 
         // Auto-enroll the new user into every academic club mapped to their course
@@ -143,7 +152,7 @@ class RegisterController extends Controller
         session()->forget([
             'register.first_name', 'register.last_name', 'register.edp_number',
             'register.email', 'register.password', 'register.mobile_number',
-            'register.department_id',
+            'register.department_id', 'register.photo_url',
         ]);
 
         $request->session()->regenerate();
@@ -153,6 +162,7 @@ class RegisterController extends Controller
             $firebaseData['localId'],
             'member',
             $user->id,
+            refreshToken: $firebaseData['refreshToken'] ?? null,
         );
 
         return redirect()->route('member.dashboard');

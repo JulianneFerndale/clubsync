@@ -22,6 +22,9 @@
         @if($type)
             <input type="hidden" name="type" value="{{ $type }}">
         @endif
+        @if($status)
+            <input type="hidden" name="status" value="{{ $status }}">
+        @endif
         <div class="relative flex-1">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
@@ -36,20 +39,40 @@
         </button>
     </form>
 
-    {{-- Filter tabs --}}
+    {{-- Type tabs --}}
     <div class="flex bg-gray-100 rounded-xl p-1 text-xs font-semibold">
-        <a href="{{ route('dsa.clubs.index', array_filter(['search' => $search])) }}"
+        <a href="{{ route('dsa.clubs.index', array_filter(['search' => $search, 'status' => $status])) }}"
            class="flex-1 text-center py-2 rounded-lg transition-colors {{ ! $type ? 'bg-white shadow-sm text-[#1B5E20]' : 'text-gray-500' }}">
             All
         </a>
-        <a href="{{ route('dsa.clubs.index', array_filter(['type' => 'academic', 'search' => $search])) }}"
+        <a href="{{ route('dsa.clubs.index', array_filter(['type' => 'academic', 'search' => $search, 'status' => $status])) }}"
            class="flex-1 text-center py-2 rounded-lg transition-colors {{ $type === 'academic' ? 'bg-white shadow-sm text-[#1B5E20]' : 'text-gray-500' }}">
             Academic
         </a>
-        <a href="{{ route('dsa.clubs.index', array_filter(['type' => 'non_academic', 'search' => $search])) }}"
+        <a href="{{ route('dsa.clubs.index', array_filter(['type' => 'non_academic', 'search' => $search, 'status' => $status])) }}"
            class="flex-1 text-center py-2 rounded-lg transition-colors {{ $type === 'non_academic' ? 'bg-white shadow-sm text-[#1B5E20]' : 'text-gray-500' }}">
             Non-Academic
         </a>
+    </div>
+
+    {{-- Compliance sub-tabs (compliant = required reports submitted) --}}
+    @php
+        $subTabs = [
+            null            => ['All', $counts['all']],
+            'compliant'     => ['Compliant', $counts['compliant']],
+            'non_compliant' => ['Non-Compliant', $counts['non_compliant']],
+            'pending'       => ['Pending Applications', $counts['pending']],
+        ];
+    @endphp
+    <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        @foreach($subTabs as $key => [$label, $count])
+            <a href="{{ route('dsa.clubs.index', array_filter(['type' => $type, 'search' => $search, 'status' => $key])) }}"
+               class="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors
+                      {{ ($status ?? null) === $key ? 'bg-[#1B5E20] text-[#F9A825] border-[#1B5E20]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B5E20]/40' }}">
+                {{ $label }}
+                <span class="{{ ($status ?? null) === $key ? 'bg-[#F9A825]/20 text-[#F9A825]' : 'bg-gray-100 text-gray-500' }} rounded-full px-1.5 py-0.5 text-[10px] leading-none">{{ $count }}</span>
+            </a>
+        @endforeach
     </div>
 
     {{-- Club list --}}
@@ -83,6 +106,23 @@
                         · Adviser: {{ $club->adviserUser->name }}
                     @endif
                 </p>
+                <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    @if($club->finalized_reports_count > 0)
+                        <span class="inline-flex items-center gap-1 bg-green-50 text-green-700 rounded-full px-2 py-0.5 text-[10px] font-semibold">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                            Compliant
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 rounded-full px-2 py-0.5 text-[10px] font-semibold">
+                            No reports submitted
+                        </span>
+                    @endif
+                    @if($club->pending_applications_count > 0)
+                        <span class="inline-flex items-center gap-1 bg-[#F9A825]/15 text-[#8a5a00] rounded-full px-2 py-0.5 text-[10px] font-semibold">
+                            {{ $club->pending_applications_count }} pending application{{ $club->pending_applications_count !== 1 ? 's' : '' }}
+                        </span>
+                    @endif
+                </div>
             </div>
 
             <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

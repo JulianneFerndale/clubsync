@@ -54,9 +54,17 @@ Business rules and institutional policies for ClubSync. These govern behavior th
 
 ## Notifications
 
-- Notifications are in-system only — no SMS or direct email integrations. This applies to all notification types, including AI-drafted compliance/violation notices.
-- Notifications must be persisted so offline users see them on next login.
+- The in-system notification is the system of record: every notification MUST be persisted in-app so offline users see it on next login. No SMS integrations.
+- Institutional email (the SCC Google Workspace / Gmail, `@sccpag.edu.ph`) MAY be used as an **added** delivery channel that mirrors an in-system notification — never as a replacement for it, and never as the only place a notification exists. Email is best-effort: a failed send must not block the in-app notification or the originating action.
+- Email copies are limited to institutional recipients and institutional content (e.g. published club announcements). No third-party/personal email domains are used for outbound notifications.
+- **No AI-generated content may be emailed automatically.** AI-drafted compliance/violation notices remain in-system only and still require human review before dispatch (see Announcements & Content Workflow); the email channel does not bypass that gate.
 - Dismissal state is stored in the database; dismissed notifications must not reappear.
+
+## External Integrations
+
+- Confirmed club activities (internal meetings, and DSA-approved external activities) MAY be mirrored to the institutional Google Workspace calendar. Sync runs in the background via a queued job and a service account with domain-wide delegation — it must never block or roll back the activity action, and a sync failure is logged, not surfaced as a user error.
+- The database remains the source of truth for activities; the Google Calendar copy is a convenience mirror. Removing/rejecting an activity removes its calendar copy.
+- Only institutional Google Workspace credentials (`@sccpag.edu.ph` service account + impersonated owner) are used. The service-account key is never committed to the repository.
 
 ## Club Registry
 

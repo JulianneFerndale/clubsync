@@ -68,6 +68,7 @@ class LoginController extends Controller
             $user->role,
             $user->id,
             $user->is_admin,
+            $firebaseData['refreshToken'] ?? null,
         );
 
         return $this->session->redirectByRole($user->role);

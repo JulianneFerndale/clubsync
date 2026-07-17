@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\Officer;
 
 use App\Http\Controllers\Controller;
-use App\Models\Announcement;
 use App\Models\Club;
-use App\Models\ClubMember;
-use App\Models\ClubActivity;
 use App\Models\ClubOfficer;
 use Illuminate\View\View;
 
@@ -14,31 +11,28 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        // Officers may belong to multiple clubs; show the first one by default.
-        $officerRecord = ClubOfficer::where('user_id', auth_user_id())
-            ->with('club')
-            ->first();
+        $userId = auth_user_id();
 
-        $club          = $officerRecord?->club;
-        $position      = $officerRecord?->position;
-        $nextEvent     = null;
-        $memberCount   = 0;
-        $recentPosts   = collect();
+        // The club this user holds an officer position in (drives the quick actions).
+        $officerRecord = ClubOfficer::where('user_id', $userId)->with('club')->first();
+        $club     = $officerRecord?->club;
+        $position = $officerRecord?->position;
 
-        if ($club) {
-            $nextEvent   = ClubActivity::where('club_id', $club->id)->upcoming()->first();
-            $memberCount = ClubMember::where('club_id', $club->id)
-                ->where('status', 'active')->count();
-            $recentPosts = Announcement::where('club_id', $club->id)
-                ->published()->take(5)->get();
-        }
+        // Like the member home: every academic / non-academic club the user belongs
+        // to — whether as a member or as an officer.
+        $belongsTo = function ($query) use ($userId) {
+            $query->whereHas('members', fn ($m) => $m->where('user_id', $userId))
+                  ->orWhereHas('officers', fn ($o) => $o->where('user_id', $userId));
+        };
+
+        $academicClubs = Club::active()->academic()->where($belongsTo)->orderBy('name')->get();
+        $nonAcademicClubs = Club::active()->nonAcademic()->where($belongsTo)->orderBy('name')->get();
 
         return view('officer.dashboard', compact(
             'club',
             'position',
-            'nextEvent',
-            'memberCount',
-            'recentPosts',
+            'academicClubs',
+            'nonAcademicClubs',
         ));
     }
 }

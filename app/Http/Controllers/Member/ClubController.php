@@ -16,9 +16,10 @@ class ClubController extends Controller
     public function index(Request $request): View
     {
         $search = $request->string('q')->trim();
-        $type   = $request->input('type'); // 'academic', 'non_academic', or null
 
-        $query = Club::active()->with('college');
+        // Members only browse & join non-academic clubs. Academic clubs are
+        // auto-enrolled from the student's course, so they are never self-registered.
+        $query = Club::active()->nonAcademic();
 
         if ($search->isNotEmpty()) {
             $query->where(function ($q) use ($search) {
@@ -27,18 +28,12 @@ class ClubController extends Controller
             });
         }
 
-        if ($type === 'academic') {
-            $query->academic();
-        } elseif ($type === 'non_academic') {
-            $query->nonAcademic();
-        }
-
         $clubs = $query->orderBy('name')->paginate(18)->withQueryString();
 
         $joinedIds = ClubMember::where('user_id', auth_user_id())
             ->pluck('status', 'club_id');
 
-        return view('member.clubs.index', compact('clubs', 'joinedIds', 'search', 'type'));
+        return view('member.clubs.index', compact('clubs', 'joinedIds', 'search'));
     }
 
     public function show(Club $club): View
@@ -61,12 +56,16 @@ class ClubController extends Controller
             ->where('user_id', auth_user_id())
             ->first();
 
+        // A club's posts/activities are only visible once the member is approved.
+        $canViewContent = $membership && $membership->status === 'active';
+
         return view('member.clubs.show', compact(
             'club',
             'upcomingEvents',
             'announcements',
             'memberCount',
             'membership',
+            'canViewContent',
         ));
     }
 
@@ -88,7 +87,7 @@ class ClubController extends Controller
             'date_joined' => now(),
         ]);
 
-        return back()->with('success', 'Your membership request has been submitted. Please wait for officer approval.');
+        return back()->with('success', 'Your membership request has been submitted. You will be notified once it has been reviewed.');
     }
 
     public function leave(Club $club): RedirectResponse
